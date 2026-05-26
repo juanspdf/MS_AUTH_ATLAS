@@ -1,0 +1,85 @@
+# ============================================================
+# MSAUTENTICACION - Microservicio de Autenticación ATLAS
+# ============================================================
+
+server:
+  port: 8081
+  servlet:
+    context-path: /ms-autenticacion
+
+# ============================================================
+# SPRING DATASOURCE - PostgreSQL
+# ============================================================
+spring:
+  application:
+    name: msautenticacion
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/atlas_db
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 30000
+      connection-timeout: 20000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: usr
+    open-in-view: false
+
+# ============================================================
+# JWT CONFIGURATION
+# ============================================================
+jwt:
+  secret: Z2FpYS1hdGxhcy1tc2F1dGVudGljYWNpb24tc2VjcmV0LWtleS1wcm9kdWNjaW9uLTIwMjQtc2lzdGVtYXMtZ2FpYS1zdXBlci1zZWNyZXQ=
+  expiration: 86400000  # 24 horas en milisegundos
+
+# ============================================================
+# SPRINGDOC / SWAGGER
+# ============================================================
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+
+# ============================================================
+# ACTUATOR
+# ============================================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: msautenticacion
+    description: Microservicio de Autenticación y Autorización - Sistema ATLAS
+    version: 0.0.1-SNAPSHOT
+
+# ============================================================
+# LOGGING
+# ============================================================
+logging:
+  level:
+    com.sistemasgaia.atlas.msautenticacion: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG

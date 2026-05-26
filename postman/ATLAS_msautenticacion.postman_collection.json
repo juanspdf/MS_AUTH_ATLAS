@@ -1,0 +1,620 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "ATLAS - msautenticacion",
+		"description": "Colección completa para probar el microservicio de autenticación y gestión de usuarios del sistema ATLAS.\n\n## Flujo de uso\n1. Ejecutar **Login** para obtener el token JWT\n2. El token se guarda automáticamente en la variable `{{token}}`\n3. Los demás endpoints usan el token automáticamente\n\n## Credenciales de prueba\n- **Usuario:** admin\n- **Contraseña:** admin123",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8081/ms-autenticacion",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "usuarioId",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "🔐 Auth",
+			"description": "Endpoints de autenticación",
+			"item": [
+				{
+					"name": "Login (admin/admin123)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('token', jsonData.datos.token);",
+									"    pm.collectionVariables.set('usuarioId', jsonData.datos.idUsuario);",
+									"    ",
+									"    pm.test('Login exitoso', function () {",
+									"        pm.expect(jsonData.status).to.eql(200);",
+									"        pm.expect(jsonData.datos.token).to.be.a('string');",
+									"        pm.expect(jsonData.datos.tipo).to.eql('Bearer');",
+									"        pm.expect(jsonData.datos.rol).to.eql('ADMIN');",
+									"    });",
+									"    ",
+									"    pm.test('Token guardado en variables', function () {",
+									"        pm.expect(pm.collectionVariables.get('token')).to.not.be.empty;",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombreUsuario\": \"admin\",\n    \"contrasenia\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "login"]
+						},
+						"description": "Autentica al usuario y retorna un JWT.\n\nEl token se guarda automáticamente en la variable `{{token}}` para ser usado en los demás requests."
+					},
+					"response": []
+				},
+				{
+					"name": "Login - Credenciales inválidas",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Retorna 401 Unauthorized', function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test('Mensaje de error correcto', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombreUsuario\": \"admin\",\n    \"contrasenia\": \"wrongpassword\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "login"]
+						},
+						"description": "Prueba de login con credenciales incorrectas. Debe retornar 401."
+					},
+					"response": []
+				},
+				{
+					"name": "Login - Validación (campos vacíos)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Retorna 400 Bad Request', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Contiene errores de validación', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.errores).to.be.an('array').that.is.not.empty;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombreUsuario\": \"\",\n    \"contrasenia\": \"\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "login"]
+						},
+						"description": "Prueba de validación con campos vacíos. Debe retornar 400 con lista de errores."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "👤 Usuarios",
+			"description": "CRUD completo de usuarios. Requiere token JWT.",
+			"item": [
+				{
+					"name": "Listar todos los usuarios",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Retorna lista de usuarios', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.datos).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/usuarios",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "usuarios"]
+						},
+						"description": "Obtiene todos los usuarios registrados."
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar usuario por ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Retorna datos del usuario', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.datos.id).to.eql(pm.collectionVariables.get('usuarioId'));",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "usuarios", "{{usuarioId}}"]
+						},
+						"description": "Busca un usuario por su UUID. Usa el ID del usuario autenticado (guardado del login)."
+					},
+					"response": []
+				},
+				{
+					"name": "Crear usuario (SUPERVISOR)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('usuarioId', jsonData.datos.id);",
+									"    ",
+									"    pm.test('Usuario creado correctamente', function () {",
+									"        pm.expect(jsonData.status).to.eql(201);",
+									"        pm.expect(jsonData.datos.nombreUsuario).to.eql('jperez');",
+									"        pm.expect(jsonData.datos.tipoRol).to.eql('SUPERVISOR');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombreUsuario\": \"jperez\",\n    \"contrasenia\": \"pass1234\",\n    \"nombre\": \"Juan\",\n    \"apellido\": \"Pérez\",\n    \"rolId\": 2\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/usuarios",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "usuarios"]
+						},
+						"description": "Crea un nuevo usuario con rol SUPERVISOR (rolId: 2).\n\nEl ID del usuario creado se guarda en `{{usuarioId}}`."
+					},
+					"response": []
+				},
+				{
+					"name": "Crear usuario (CLIENTE)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    pm.test('Usuario CLIENTE creado', function () {",
+									"        pm.expect(jsonData.status).to.eql(201);",
+									"        pm.expect(jsonData.datos.tipoRol).to.eql('CLIENTE');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombreUsuario\": \"mlopez\",\n    \"contrasenia\": \"cliente99\",\n    \"nombre\": \"María\",\n    \"apellido\": \"López\",\n    \"rolId\": 3\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/usuarios",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "usuarios"]
+						},
+						"description": "Crea un nuevo usuario con rol CLIENTE (rolId: 3)."
+					},
+					"response": []
+				},
+				{
+					"name": "Crear usuario - Duplicado (409)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Retorna 409 Conflict', function () {",
+									"    pm.response.to.have.status(409);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombreUsuario\": \"admin\",\n    \"contrasenia\": \"test1234\",\n    \"nombre\": \"Test\",\n    \"apellido\": \"Duplicado\",\n    \"rolId\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/usuarios",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "usuarios"]
+						},
+						"description": "Intenta crear un usuario con nombre de usuario ya existente. Debe retornar 409."
+					},
+					"response": []
+				},
+				{
+					"name": "Crear usuario - Validación (400)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Retorna 400', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Contiene errores de validación', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.errores).to.be.an('array').that.is.not.empty;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombreUsuario\": \"\",\n    \"contrasenia\": \"ab\",\n    \"nombre\": \"\",\n    \"apellido\": \"\",\n    \"rolId\": null\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/usuarios",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "usuarios"]
+						},
+						"description": "Envía datos inválidos. Debe retornar 400 con lista de errores de validación."
+					},
+					"response": []
+				},
+				{
+					"name": "Actualizar usuario",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Datos actualizados', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.datos.nombre).to.eql('Juan Carlos');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombreUsuario\": \"jperez\",\n    \"contrasenia\": \"newpass99\",\n    \"nombre\": \"Juan Carlos\",\n    \"apellido\": \"Pérez García\",\n    \"rolId\": 2\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "usuarios", "{{usuarioId}}"]
+						},
+						"description": "Actualiza los datos del usuario creado anteriormente."
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar usuario (soft delete)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Mensaje de eliminación', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.mensaje).to.include('eliminado');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "usuarios", "{{usuarioId}}"]
+						},
+						"description": "Realiza soft delete (activo = false) del usuario."
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar usuario inexistente (404)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Retorna 404', function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/usuarios/00000000-0000-0000-0000-000000000000",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "usuarios", "00000000-0000-0000-0000-000000000000"]
+						},
+						"description": "Busca un usuario con UUID inexistente. Debe retornar 404."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "❤️ Health & Info",
+			"description": "Actuator endpoints",
+			"item": [
+				{
+					"name": "Health Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Status UP', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql('UP');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/actuator/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["actuator", "health"]
+						},
+						"description": "Health check del microservicio (público, no requiere token)."
+					},
+					"response": []
+				},
+				{
+					"name": "Swagger UI (abrir en navegador)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/swagger-ui.html",
+							"host": ["{{baseUrl}}"],
+							"path": ["swagger-ui.html"]
+						},
+						"description": "Abrir esta URL en el navegador para ver la documentación Swagger interactiva."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🔒 Sin Token (401)",
+			"description": "Pruebas de endpoints protegidos sin token",
+			"item": [
+				{
+					"name": "Listar usuarios SIN token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Retorna 403 Forbidden', function () {",
+									"    pm.expect([401, 403]).to.include(pm.response.code);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/usuarios",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "usuarios"]
+						},
+						"description": "Intenta acceder a un endpoint protegido sin enviar token. Debe retornar 401/403."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
