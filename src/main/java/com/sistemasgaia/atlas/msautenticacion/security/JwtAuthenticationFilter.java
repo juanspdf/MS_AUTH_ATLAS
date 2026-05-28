@@ -8,23 +8,32 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Filtro JWT que intercepta cada request para validar el token.
+ * Filtro JWT empresarial con soporte RBAC completo.
+ *
  * Se ejecuta UNA sola vez por request gracias a OncePerRequestFilter.
  *
- * Flujo:
+ * Flujo de autenticación y autorización:
  * 1. Extrae el token del header Authorization (Bearer ...)
- * 2. Valida el token
- * 3. Carga el UserDetails
- * 4. Establece la autenticación en el SecurityContext
+ * 2. Valida la firma y expiración del token
+ * 3. Extrae el ROL del token → GrantedAuthority con prefijo "ROLE_"
+ * 4. Extrae las POLÍTICAS del token → GrantedAuthority sin prefijo
+ * 5. Establece la autenticación completa en el SecurityContext
+ *
+ * Ventaja: Las authorities se resuelven directamente del JWT,
+ * sin consultar la base de datos en cada request.
+ * El CustomUserDetailsService solo se usa durante el login.
  */
 @Slf4j
 @Component
@@ -32,7 +41,6 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final CustomUserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(
@@ -55,14 +63,38 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // Si el username existe y no hay autenticación previa en el contexto
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                if (jwtService.validarToken(jwt, userDetails.getUsername())) {
+                // Validar firma y expiración del token
+                if (jwtService.validarToken(jwt, username)) {
+
+                    // Extraer rol y políticas del JWT
+                    String rol = jwtService.extraerRol(jwt);
+                    List<String> politicas = jwtService.extraerPoliticas(jwt);
+
+                    // Construir authorities desde el JWT (sin acceder a BD)
+                    List<GrantedAuthority> authorities = new ArrayList<>();
+
+                    // 1. Agregar ROL (con prefijo ROLE_ para hasRole())
+                    if (rol != null && !rol.isEmpty()) {
+                        authorities.add(new SimpleGrantedAuthority("ROLE_" + rol));
+                    }
+
+                    // 2. Agregar cada POLÍTICA como authority (para hasAuthority())
+                    if (politicas != null) {
+                        for (String politica : politicas) {
+                            authorities.add(new SimpleGrantedAuthority(politica));
+                        }
+                    }
+
+                    log.debug("JWT autenticado para usuario '{}' | Rol: {} | Políticas: {} | Authorities: {}",
+                            username, rol, politicas, authorities);
+
+                    // Crear token de autenticación con authorities completas
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(
-                                    userDetails,
+                                    username,
                                     null,
-                                    userDetails.getAuthorities()
+                                    authorities
                             );
                     authToken.setDetails(
                             new WebAuthenticationDetailsSource().buildDetails(request)

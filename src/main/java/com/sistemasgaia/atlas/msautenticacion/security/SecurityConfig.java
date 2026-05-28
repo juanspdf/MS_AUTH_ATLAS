@@ -1,9 +1,13 @@
 package com.sistemasgaia.atlas.msautenticacion.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.sistemasgaia.atlas.msautenticacion.dto.ApiResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -19,7 +23,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
- * Configuración central de Spring Security.
+ * Configuración central de Spring Security con soporte RBAC empresarial.
  *
  * Características:
  * - Sesiones stateless (JWT)
@@ -27,6 +31,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * - Rutas públicas: login, swagger, actuator health
  * - Todas las demás rutas requieren autenticación
  * - Filtro JWT antes del filtro de autenticación por defecto
+ * - @EnableMethodSecurity activo para @PreAuthorize con hasRole() y hasAuthority()
+ * - Manejo personalizado de errores 401 (no autenticado) y 403 (sin permisos)
  */
 @Configuration
 @EnableWebSecurity
@@ -55,6 +61,35 @@ public class SecurityConfig {
                         ).permitAll()
                         // Todo lo demás requiere autenticación
                         .anyRequest().authenticated()
+                )
+                // Manejo de excepciones de seguridad
+                .exceptionHandling(exceptions -> exceptions
+                        // 401 - No autenticado (sin token o token inválido)
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                            response.setStatus(401);
+                            ApiResponseDto<Void> body = ApiResponseDto.error(
+                                    401,
+                                    "No autenticado. Token JWT requerido o inválido",
+                                    null
+                            );
+                            ObjectMapper mapper = new ObjectMapper();
+                            mapper.registerModule(new JavaTimeModule());
+                            response.getWriter().write(mapper.writeValueAsString(body));
+                        })
+                        // 403 - Sin permisos (autenticado pero sin autorización)
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                            response.setStatus(403);
+                            ApiResponseDto<Void> body = ApiResponseDto.error(
+                                    403,
+                                    "Acceso denegado. No tiene los permisos necesarios para esta operación",
+                                    null
+                            );
+                            ObjectMapper mapper = new ObjectMapper();
+                            mapper.registerModule(new JavaTimeModule());
+                            response.getWriter().write(mapper.writeValueAsString(body));
+                        })
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

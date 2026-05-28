@@ -20,6 +20,11 @@
 			"key": "usuarioId",
 			"value": "",
 			"type": "string"
+		},
+		{
+			"key": "politicaId",
+			"value": "",
+			"type": "string"
 		}
 	],
 	"item": [
@@ -69,8 +74,14 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/auth/login",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "auth", "login"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
 						},
 						"description": "Autentica al usuario y retorna un JWT.\n\nEl token se guarda automáticamente en la variable `{{token}}` para ser usado en los demás requests."
 					},
@@ -110,8 +121,14 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/auth/login",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "auth", "login"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
 						},
 						"description": "Prueba de login con credenciales incorrectas. Debe retornar 401."
 					},
@@ -151,8 +168,14 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/auth/login",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "auth", "login"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
 						},
 						"description": "Prueba de validación con campos vacíos. Debe retornar 400 con lista de errores."
 					},
@@ -194,8 +217,13 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/usuarios",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "usuarios"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"usuarios"
+							]
 						},
 						"description": "Obtiene todos los usuarios registrados."
 					},
@@ -231,8 +259,14 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "usuarios", "{{usuarioId}}"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"usuarios",
+								"{{usuarioId}}"
+							]
 						},
 						"description": "Busca un usuario por su UUID. Usa el ID del usuario autenticado (guardado del login)."
 					},
@@ -278,8 +312,13 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/usuarios",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "usuarios"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"usuarios"
+							]
 						},
 						"description": "Crea un nuevo usuario con rol SUPERVISOR (rolId: 2).\n\nEl ID del usuario creado se guarda en `{{usuarioId}}`."
 					},
@@ -323,8 +362,13 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/usuarios",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "usuarios"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"usuarios"
+							]
 						},
 						"description": "Crea un nuevo usuario con rol CLIENTE (rolId: 3)."
 					},
@@ -363,8 +407,13 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/usuarios",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "usuarios"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"usuarios"
+							]
 						},
 						"description": "Intenta crear un usuario con nombre de usuario ya existente. Debe retornar 409."
 					},
@@ -408,8 +457,13 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/usuarios",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "usuarios"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"usuarios"
+							]
 						},
 						"description": "Envía datos inválidos. Debe retornar 400 con lista de errores de validación."
 					},
@@ -453,8 +507,14 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "usuarios", "{{usuarioId}}"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"usuarios",
+								"{{usuarioId}}"
+							]
 						},
 						"description": "Actualiza los datos del usuario creado anteriormente."
 					},
@@ -490,8 +550,14 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "usuarios", "{{usuarioId}}"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"usuarios",
+								"{{usuarioId}}"
+							]
 						},
 						"description": "Realiza soft delete (activo = false) del usuario."
 					},
@@ -522,10 +588,695 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/usuarios/00000000-0000-0000-0000-000000000000",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "usuarios", "00000000-0000-0000-0000-000000000000"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"usuarios",
+								"00000000-0000-0000-0000-000000000000"
+							]
 						},
 						"description": "Busca un usuario con UUID inexistente. Debe retornar 404."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "📋 Políticas RBAC",
+			"description": "CRUD completo de políticas/permisos. Requiere ROLE_ADMIN + política específica.",
+			"item": [
+				{
+					"name": "Listar todas las políticas",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Retorna lista de políticas', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.datos).to.be.an('array');",
+									"});",
+									"",
+									"// Guardar ID de la primera política si existe",
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.datos && jsonData.datos.length > 0) {",
+									"        pm.collectionVariables.set('politicaId', jsonData.datos[0].id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/politicas",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"politicas"
+							]
+						},
+						"description": "Obtiene todas las políticas registradas.\n\nRequiere: ROLE_ADMIN + VER_POLITICAS"
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar política por ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Retorna datos de la política', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.datos.id).to.be.a('string');",
+									"    pm.expect(jsonData.datos.nombrePolitica).to.be.a('string');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/politicas/{{politicaId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"politicas",
+								"{{politicaId}}"
+							]
+						},
+						"description": "Busca una política por su UUID.\n\nRequiere: ROLE_ADMIN + VER_POLITICAS"
+					},
+					"response": []
+				},
+				{
+					"name": "Crear política",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('politicaId', jsonData.datos.id);",
+									"    ",
+									"    pm.test('Política creada correctamente', function () {",
+									"        pm.expect(jsonData.status).to.eql(201);",
+									"        pm.expect(jsonData.datos.nombrePolitica).to.eql('GENERAR_REPORTE');",
+									"        pm.expect(jsonData.datos.activo).to.eql(true);",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombrePolitica\": \"GENERAR_REPORTE\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/politicas",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"politicas"
+							]
+						},
+						"description": "Crea una nueva política/permiso.\n\nRequiere: ROLE_ADMIN + CREAR_POLITICA\n\nEl nombre debe ser en MAYÚSCULAS con guiones bajos."
+					},
+					"response": []
+				},
+				{
+					"name": "Crear política - Duplicada (409)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Retorna 409 Conflict', function () {",
+									"    pm.response.to.have.status(409);",
+									"});",
+									"",
+									"pm.test('Mensaje de duplicado', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.mensaje).to.include('Ya existe');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombrePolitica\": \"GENERAR_REPORTE\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/politicas",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"politicas"
+							]
+						},
+						"description": "Intenta crear una política con nombre ya existente. Debe retornar 409."
+					},
+					"response": []
+				},
+				{
+					"name": "Crear política - Validación (400)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Retorna 400', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Contiene errores de validación', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.errores).to.be.an('array').that.is.not.empty;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombrePolitica\": \"nombre inválido minúsculas\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/politicas",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"politicas"
+							]
+						},
+						"description": "Envía nombre inválido (minúsculas). Debe retornar 400 con error de validación de patrón."
+					},
+					"response": []
+				},
+				{
+					"name": "Actualizar política",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Política actualizada', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.datos.nombrePolitica).to.eql('EXPORTAR_REPORTE');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombrePolitica\": \"EXPORTAR_REPORTE\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/politicas/{{politicaId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"politicas",
+								"{{politicaId}}"
+							]
+						},
+						"description": "Actualiza el nombre de la política.\n\nRequiere: ROLE_ADMIN + EDITAR_POLITICA"
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar política (soft delete)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Mensaje de eliminación', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.mensaje).to.include('eliminada');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/politicas/{{politicaId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"politicas",
+								"{{politicaId}}"
+							]
+						},
+						"description": "Soft delete de la política (activo = false).\n\nRequiere: ROLE_ADMIN + ELIMINAR_POLITICA"
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar política inexistente (404)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Retorna 404', function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/politicas/00000000-0000-0000-0000-000000000000",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"politicas",
+								"00000000-0000-0000-0000-000000000000"
+							]
+						},
+						"description": "Busca una política con UUID inexistente. Debe retornar 404."
+					},
+					"response": []
+				},
+				{
+					"name": "Listar políticas SIN token (401)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Retorna 401 sin token', function () {",
+									"    pm.expect([401, 403]).to.include(pm.response.code);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/politicas",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"politicas"
+							]
+						},
+						"description": "Intenta listar políticas sin token JWT. Debe retornar 401."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🔗 Asignación de Políticas",
+			"description": "Asignar políticas al ROL del usuario. Requiere ROLE_ADMIN + ASIGNAR_POLITICAS.",
+			"item": [
+				{
+					"name": "Asignar políticas a usuario (vía rol)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    pm.test('Asignación exitosa', function () {",
+									"        pm.expect(jsonData.status).to.eql(200);",
+									"        pm.expect(jsonData.datos.nombreUsuario).to.be.a('string');",
+									"        pm.expect(jsonData.datos.tipoRol).to.be.a('string');",
+									"        pm.expect(jsonData.datos.politicasAsignadas).to.be.a('number');",
+									"    });",
+									"    ",
+									"    pm.test('Resumen de asignación presente', function () {",
+									"        pm.expect(jsonData.datos.politicasNuevas).to.be.an('array');",
+									"        pm.expect(jsonData.datos.politicasYaExistentes).to.be.an('array');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"politicasIds\": [\n        \"{{politicaId}}\"\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}/politicas",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"usuarios",
+								"{{usuarioId}}",
+								"politicas"
+							]
+						},
+						"description": "Asigna políticas al ROL del usuario.\n\nRequiere: ROLE_ADMIN + ASIGNAR_POLITICAS\n\nLas políticas se asignan al ROL, no al usuario directamente.\nSe evitan duplicados automáticamente."
+					},
+					"response": []
+				},
+				{
+					"name": "Asignar políticas - Duplicadas",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    pm.test('Duplicados detectados', function () {",
+									"        pm.expect(jsonData.datos.politicasDuplicadas).to.be.at.least(1);",
+									"        pm.expect(jsonData.datos.politicasYaExistentes).to.be.an('array').that.is.not.empty;",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"politicasIds\": [\n        \"{{politicaId}}\"\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}/politicas",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"usuarios",
+								"{{usuarioId}}",
+								"politicas"
+							]
+						},
+						"description": "Intenta asignar la misma política otra vez. Debe detectar duplicados y no fallar."
+					},
+					"response": []
+				},
+				{
+					"name": "Asignar políticas - Usuario inexistente (404)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Retorna 404', function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"politicasIds\": [\n        \"{{politicaId}}\"\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/usuarios/00000000-0000-0000-0000-000000000000/politicas",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"usuarios",
+								"00000000-0000-0000-0000-000000000000",
+								"politicas"
+							]
+						},
+						"description": "Intenta asignar políticas a un usuario inexistente. Debe retornar 404."
+					},
+					"response": []
+				},
+				{
+					"name": "Asignar políticas - Lista vacía (400)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Retorna 400', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Error de validación', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.errores).to.be.an('array').that.is.not.empty;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"politicasIds\": []\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}/politicas",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"usuarios",
+								"{{usuarioId}}",
+								"politicas"
+							]
+						},
+						"description": "Envía lista vacía de políticas. Debe retornar 400 con error de validación."
+					},
+					"response": []
+				},
+				{
+					"name": "Asignar políticas - Política inexistente (404)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Retorna 404', function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"politicasIds\": [\n        \"00000000-0000-0000-0000-000000000000\"\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}/politicas",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"usuarios",
+								"{{usuarioId}}",
+								"politicas"
+							]
+						},
+						"description": "Intenta asignar una política con UUID inexistente. Debe retornar 404."
 					},
 					"response": []
 				}
@@ -560,8 +1311,13 @@
 						"header": [],
 						"url": {
 							"raw": "{{baseUrl}}/actuator/health",
-							"host": ["{{baseUrl}}"],
-							"path": ["actuator", "health"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"actuator",
+								"health"
+							]
 						},
 						"description": "Health check del microservicio (público, no requiere token)."
 					},
@@ -574,8 +1330,12 @@
 						"header": [],
 						"url": {
 							"raw": "{{baseUrl}}/swagger-ui.html",
-							"host": ["{{baseUrl}}"],
-							"path": ["swagger-ui.html"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"swagger-ui.html"
+							]
 						},
 						"description": "Abrir esta URL en el navegador para ver la documentación Swagger interactiva."
 					},
@@ -607,8 +1367,13 @@
 						"header": [],
 						"url": {
 							"raw": "{{baseUrl}}/api/usuarios",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "usuarios"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"usuarios"
+							]
 						},
 						"description": "Intenta acceder a un endpoint protegido sin enviar token. Debe retornar 401/403."
 					},
