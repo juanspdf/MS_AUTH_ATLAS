@@ -51,8 +51,15 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // Rutas públicas
+                        // Rutas públicas - Autenticación
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/auth/validar-token").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/establecer-contrasenia").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/recuperar-contrasenia").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/reenviar-activacion").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/logout").authenticated()
+                        // Rutas públicas - Documentación y Actuator
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",

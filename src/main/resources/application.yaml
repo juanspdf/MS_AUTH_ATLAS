@@ -37,6 +37,27 @@ spring:
         default_schema: usr
     open-in-view: false
 
+  # ============================================================
+  # SPRING MAIL - SMTP Configuration
+  # ============================================================
+  # Configurar con las credenciales de tu servidor SMTP.
+  # Gmail requiere App Password: https://myaccount.google.com/apppasswords
+  mail:
+    host: ${SMTP_HOST:smtp.gmail.com}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:tu-correo@gmail.com}
+    password: ${SMTP_PASSWORD:tu-app-password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enabled: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
 # ============================================================
 # JWT CONFIGURATION
 # ============================================================
@@ -83,3 +104,15 @@ logging:
     com.sistemasgaia.atlas.msautenticacion: DEBUG
     org.springframework.security: DEBUG
     org.hibernate.SQL: DEBUG
+
+# ============================================================
+# ATLAS - Configuración de la aplicación
+# ============================================================
+atlas:
+  frontend:
+    base-url: ${FRONTEND_URL:http://localhost:4200}
+  email:
+    from: ${EMAIL_FROM:noreply@sistemasgaia.com}
+    from-name: ${EMAIL_FROM_NAME:Sistema ATLAS}
+  activacion:
+    token-expiration-hours: ${TOKEN_EXPIRATION_HOURS:24}

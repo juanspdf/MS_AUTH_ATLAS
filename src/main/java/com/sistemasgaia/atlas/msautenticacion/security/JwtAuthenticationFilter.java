@@ -1,5 +1,6 @@
 package com.sistemasgaia.atlas.msautenticacion.security;
 
+import com.sistemasgaia.atlas.msautenticacion.services.TokenInvalidadoService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -41,6 +42,7 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final TokenInvalidadoService tokenInvalidadoService;
 
     @Override
     protected void doFilterInternal(
@@ -63,6 +65,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // Si el username existe y no hay autenticación previa en el contexto
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+                // Verificar si el token está en la blacklist (logout previo)
+                if (tokenInvalidadoService.isTokenInvalidado(jwt)) {
+                    log.warn("Token invalidado (logout) detectado para usuario: {}", username);
+                    filterChain.doFilter(request, response);
+                    return;
+                }
 
                 // Validar firma y expiración del token
                 if (jwtService.validarToken(jwt, username)) {

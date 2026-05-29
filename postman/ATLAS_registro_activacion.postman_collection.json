@@ -1,0 +1,199 @@
+{
+	"info": {
+		"_postman_id": "b2e3f4a5-6789-4abc-def0-123456789abc",
+		"name": "ATLAS - Registro y Activación",
+		"description": "Endpoints de registro de usuarios, activación de cuenta, recuperación y cambio de contraseña.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8081/ms-autenticacion",
+			"type": "string"
+		},
+		{
+			"key": "activationToken",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Registrar Usuario",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"nombreUsuario\": \"jperez\",\n    \"correo\": \"jperez@gmail.com\",\n    \"nombre\": \"Juan\",\n    \"apellido\": \"Pérez\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/register",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "register"]
+				},
+				"description": "Registra un nuevo usuario sin contraseña. El usuario recibe un correo con enlace de activación. Si no se envía rolId, se asigna CLIENTE por defecto."
+			},
+			"response": []
+		},
+		{
+			"name": "1b. Registrar Usuario (con rol)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"nombreUsuario\": \"agarcia\",\n    \"correo\": \"agarcia@gmail.com\",\n    \"nombre\": \"Ana\",\n    \"apellido\": \"García\",\n    \"rolId\": 2\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/register",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "register"]
+				},
+				"description": "Registra un nuevo usuario con un rol específico."
+			},
+			"response": []
+		},
+		{
+			"name": "2. Validar Token",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/validar-token?token={{activationToken}}",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "validar-token"],
+					"query": [
+						{
+							"key": "token",
+							"value": "{{activationToken}}"
+						}
+					]
+				},
+				"description": "Valida si un token de activación o recuperación es válido. Usar el token recibido por correo. Setear la variable 'activationToken' antes de ejecutar."
+			},
+			"response": []
+		},
+		{
+			"name": "3. Establecer Contraseña",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"token\": \"{{activationToken}}\",\n    \"nuevaContrasenia\": \"Password123!\",\n    \"confirmarContrasenia\": \"Password123!\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/establecer-contrasenia",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "establecer-contrasenia"]
+				},
+				"description": "Establece la contraseña del usuario usando el token de activación o recuperación. El usuario queda activo después de esto."
+			},
+			"response": []
+		},
+		{
+			"name": "4. Recuperar Contraseña",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"correo\": \"jperez@gmail.com\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/recuperar-contrasenia",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "recuperar-contrasenia"]
+				},
+				"description": "Solicita recuperación de contraseña. Siempre retorna 200 por seguridad (no revela si el correo existe)."
+			},
+			"response": []
+		},
+		{
+			"name": "5. Reenviar Activación",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"correo\": \"jperez@gmail.com\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/reenviar-activacion",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "reenviar-activacion"]
+				},
+				"description": "Reenvía el correo de activación para un usuario que aún no ha activado su cuenta."
+			},
+			"response": []
+		},
+		{
+			"name": "6. Login (después de activar)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"nombreUsuario\": \"jperez\",\n    \"contrasenia\": \"Password123!\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/login",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "login"]
+				},
+				"description": "Login con el usuario registrado y activado. Usa la contraseña establecida en el paso 3."
+			},
+			"response": []
+		},
+		{
+			"name": "7. Logout",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwt_token}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/logout",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "logout"]
+				},
+				"description": "Cierra sesión e invalida el JWT. Copiar el token del login en la variable jwt_token."
+			},
+			"response": []
+		}
+	]
+}

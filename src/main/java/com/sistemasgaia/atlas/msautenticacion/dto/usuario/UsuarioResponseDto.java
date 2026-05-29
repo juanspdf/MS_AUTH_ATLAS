@@ -18,6 +18,7 @@ public class UsuarioResponseDto {
 
     private UUID id;
     private String nombreUsuario;
+    private String correo;
     private String nombre;
     private String apellido;
     private Integer rolId;

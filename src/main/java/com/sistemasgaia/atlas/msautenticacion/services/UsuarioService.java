@@ -47,12 +47,17 @@ public class UsuarioService {
             throw new BusinessException("El nombre de usuario '" + request.getNombreUsuario() + "' ya existe");
         }
 
+        if (usuarioRepository.existsByCorreo(request.getCorreo())) {
+            throw new BusinessException("El correo '" + request.getCorreo() + "' ya está registrado");
+        }
+
         Rol rol = rolRepository.findById(request.getRolId())
                 .orElseThrow(() -> new ResourceNotFoundException("Rol", "id", request.getRolId()));
 
         Usuario usuario = Usuario.builder()
                 .nombreUsuario(request.getNombreUsuario())
                 .contrasenia(passwordEncoder.encode(request.getContrasenia()))
+                .correo(request.getCorreo())
                 .nombre(request.getNombre())
                 .apellido(request.getApellido())
                 .rolId(request.getRolId())
@@ -74,11 +79,17 @@ public class UsuarioService {
             throw new BusinessException("El nombre de usuario '" + request.getNombreUsuario() + "' ya existe");
         }
 
+        if (!usuario.getCorreo().equals(request.getCorreo())
+                && usuarioRepository.existsByCorreo(request.getCorreo())) {
+            throw new BusinessException("El correo '" + request.getCorreo() + "' ya está registrado");
+        }
+
         Rol rol = rolRepository.findById(request.getRolId())
                 .orElseThrow(() -> new ResourceNotFoundException("Rol", "id", request.getRolId()));
 
         usuario.setNombreUsuario(request.getNombreUsuario());
         usuario.setContrasenia(passwordEncoder.encode(request.getContrasenia()));
+        usuario.setCorreo(request.getCorreo());
         usuario.setNombre(request.getNombre());
         usuario.setApellido(request.getApellido());
         usuario.setRolId(request.getRolId());
@@ -104,6 +115,7 @@ public class UsuarioService {
         return UsuarioResponseDto.builder()
                 .id(u.getId())
                 .nombreUsuario(u.getNombreUsuario())
+                .correo(u.getCorreo())
                 .nombre(u.getNombre())
                 .apellido(u.getApellido())
                 .rolId(u.getRolId())

@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -84,6 +86,15 @@ public class JwtService {
     public boolean validarToken(String token, String username) {
         final String tokenUsername = extraerUsername(token);
         return tokenUsername.equals(username) && !isTokenExpirado(token);
+    }
+
+    /**
+     * Extrae la fecha de expiración del token como LocalDateTime.
+     * Se utiliza en el proceso de logout para registrar cuándo expira el token invalidado.
+     */
+    public LocalDateTime extraerExpiracion(String token) {
+        Date expiration = extraerClaim(token, Claims::getExpiration);
+        return expiration.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 
     /**

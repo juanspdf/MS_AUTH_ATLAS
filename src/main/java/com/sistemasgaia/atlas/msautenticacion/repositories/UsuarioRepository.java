@@ -31,4 +31,20 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
      * Verifica si existe un usuario con el nombre de usuario dado.
      */
     boolean existsByNombreUsuario(String nombreUsuario);
+
+    /**
+     * Verifica si existe un usuario con el correo dado.
+     */
+    boolean existsByCorreo(String correo);
+
+    /**
+     * Busca un usuario activo por su correo electrónico.
+     */
+    @Query("SELECT u FROM Usuario u JOIN FETCH u.rol WHERE u.correo = :correo AND u.activo = true")
+    Optional<Usuario> findByCorreoAndActivoTrue(@Param("correo") String correo);
+
+    /**
+     * Busca un usuario por su correo electrónico (sin filtrar por activo).
+     */
+    Optional<Usuario> findByCorreo(String correo);
 }
