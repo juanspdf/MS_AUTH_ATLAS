@@ -29,7 +29,7 @@ public class UsuarioService {
 
     @Transactional(readOnly = true)
     public List<UsuarioResponseDto> listarTodos() {
-        return usuarioRepository.findAll().stream()
+        return usuarioRepository.findByActivoTrue().stream()
                 .map(this::toResponseDto)
                 .toList();
     }
@@ -88,7 +88,9 @@ public class UsuarioService {
                 .orElseThrow(() -> new ResourceNotFoundException("Rol", "id", request.getRolId()));
 
         usuario.setNombreUsuario(request.getNombreUsuario());
-        usuario.setContrasenia(passwordEncoder.encode(request.getContrasenia()));
+        if (request.getContrasenia() != null && !request.getContrasenia().isBlank()) {
+            usuario.setContrasenia(passwordEncoder.encode(request.getContrasenia()));
+        }
         usuario.setCorreo(request.getCorreo());
         usuario.setNombre(request.getNombre());
         usuario.setApellido(request.getApellido());

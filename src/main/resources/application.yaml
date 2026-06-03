@@ -28,8 +28,8 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: none
-    show-sql: true
+      ddl-auto: validate
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
@@ -37,11 +37,15 @@ spring:
         default_schema: usr
     open-in-view: false
 
+  flyway:
+    schemas: usr
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
   # ============================================================
   # SPRING MAIL - SMTP Configuration
   # ============================================================
   # Configurar con las credenciales de tu servidor SMTP.
-  # Gmail requiere App Password: https://myaccount.google.com/apppasswords
   mail:
     host: ${SMTP_HOST:smtp.gmail.com}
     port: ${SMTP_PORT:587}
@@ -52,7 +56,7 @@ spring:
         smtp:
           auth: true
           starttls:
-            enabled: true
+            enable: true
             required: true
           connectiontimeout: 5000
           timeout: 5000
@@ -62,8 +66,9 @@ spring:
 # JWT CONFIGURATION
 # ============================================================
 jwt:
-  secret: Z2FpYS1hdGxhcy1tc2F1dGVudGljYWNpb24tc2VjcmV0LWtleS1wcm9kdWNjaW9uLTIwMjQtc2lzdGVtYXMtZ2FpYS1zdXBlci1zZWNyZXQ=
-  expiration: 86400000  # 24 horas en milisegundos
+  private-key: ${JWT_PRIVATE_KEY:MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDQxrj4uXHDxLRXqgoQ8D1qhIiAvxWvgDmV27fKYUZwzm2urXGioonjNzOiMxiwl6DWMOwQaO5Edeq/6d5sXvFR5HDCfFuER+XevIKHyNDxghBzh3/XkcH7AskrrGjRU6ScaOhSF8INHSlkLw5s0QGqU0MBKetrFQTSQGmdGvIMGEZ3C6T9e7Rds8imQNOCC5HNXgxwU/W619HEp/6kmshWWR6HqFuhfA+OChkKLTWdY6BimRhEwgLkmSQlbKI/5Alao2ZpahgKO0dHCQOt8FhnjlkabT/OLgMdLzuYDYI0abVdqD4MlRmfhW7JsHbOGIq+cle0H29KqwX6C7ixAyf3AgMBAAECggEACXPrTXJdZkxyZe27BZ1QX+b0T0VXnq9NltgbRZHgoJxCzGqUqep2F9BDXuVgCXmJZ2lQ/EU5VJGKOXpF/zN6oFyZhmofB/7sDN5i1/G4aYGcFmmyLiPZW/DPrvyKxRTmb8vdiP9ZDUL0FtHSngwF6Uev0aOrlxjyiO/bAv6vVZYcJir25uNZsTYYwXRWuk4x2dCSsK4BP83BtmwA1pGXqlMe5mDQiKBeyOmmUzsQGLNahIj8ZA9Ah8hn6+Z6cfA2TIlSUu3E+cbeig6AeIdD6hG1RsDav4kn8+rp/Pu4jzyJcRYj0dtVV7At6pGMo9eEeg+d4pE6W5TfMuA2nBwssQKBgQDZNrtOtU5ebf+AQp04zGqozZExC83tmoXMnUx62Vy8woChC+YAcsQ8ApUzodMD0m1GdSuC2s/x6awv9biRFqpk7TxE1ZytpVy/Of0ZWHgnMHAnA8Hykpk23HRUUl8ERM1/fY9w9yeuYJtJXlI4VsPKqgaEeZkAtN6JgZl00SCkzQKBgQD2Dktp2Y29EfGngCEzpO1VlkflWYkkyQpl4PvCJgWLjlBcdJgtKTvRIiqYQue9ZwxjtvJOaE71vmV5QADR6noYqI+povp1TbQ7BAq4NPBNoLDbt+4tZKfDtJsbC3GfcTZZn/IwEU1HjkTwcODQb0PtqwubXZIkjQIF5V+PP8Cf0wKBgEPg1qfCALuBpFZwerFFMA+QLc8l4TRfFXDbtwqs4k4aehfZoAaD1s7p/7Yi285V89AQzYgW2OTAIQ7butGcQ6NGf48DMfMRueoINQ+2ldWpTWLjybgEF90NB01ScF7lIVK16h1jHwNfLSfAUfFJK+YpO+AqH6YY33IZDdtzfsABAoGAZUPkzZ93sgSci+8zuul5s+uxkzaSNs12tg8uDe1QAuuDL0ndB1kdASkqlpeSgGTUuIUmnBZZyNGfOZOZwsrZjSRyW8Jziat9LXywXLeM3qXvo73DDHOMiALggvTmwlP5plEpf5bfUz++J6aNH7trHXlzwXF1IA3Yc0y/U1lNkXkCgYA5yRLCgdn8l3S2JUwG88dfVkoMcBC+uA+RE+ptPxk8W8H3gYLZkg0S8obs+3CPxSXNqXhKhtgb5W2hbPVorrv9lXWTAE/rztpkhfECrhJtBmrikA0BE+8iSm4Agj30MYlfl88SZc7K2Mdm+4N+D5ZgLax2DsDL34ilfR0rDHwwog==}
+  public-key: ${JWT_PUBLIC_KEY:MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0Ma4+Llxw8S0V6oKEPA9aoSIgL8Vr4A5ldu3ymFGcM5trq1xoqKJ4zczojMYsJeg1jDsEGjuRHXqv+nebF7xUeRwwnxbhEfl3ryCh8jQ8YIQc4d/15HB+wLJK6xo0VOknGjoUhfCDR0pZC8ObNEBqlNDASnraxUE0kBpnRryDBhGdwuk/Xu0XbPIpkDTgguRzV4McFP1utfRxKf+pJrIVlkeh6hboXwPjgoZCi01nWOgYpkYRMIC5JkkJWyiP+QJWqNmaWoYCjtHRwkDrfBYZ45ZGm0/zi4DHS87mA2CNGm1Xag+DJUZn4VuybB2zhiKvnJXtB9vSqsF+gu4sQMn9wIDAQAB}
+  expiration: ${JWT_EXPIRATION:86400000}  # 24 horas en milisegundos
 
 # ============================================================
 # SPRINGDOC / SWAGGER

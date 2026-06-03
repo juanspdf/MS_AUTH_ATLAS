@@ -19,11 +19,6 @@ import java.util.UUID;
 public interface TokenActivacionRepository extends JpaRepository<TokenActivacion, UUID> {
 
     /**
-     * Busca un token válido (no usado) por su valor.
-     */
-    Optional<TokenActivacion> findByTokenAndUsadoFalse(String token);
-
-    /**
      * Busca un token por su valor (independientemente del estado).
      */
     Optional<TokenActivacion> findByToken(String token);
@@ -52,6 +47,6 @@ public interface TokenActivacionRepository extends JpaRepository<TokenActivacion
      * @return cantidad de registros eliminados
      */
     @Modifying
-    @Query("DELETE FROM TokenActivacion t WHERE t.fechaExpiracion < :fechaLimite AND t.usado = true")
-    int eliminarTokensExpiradosUsados(@Param("fechaLimite") LocalDateTime fechaLimite);
+    @Query("DELETE FROM TokenActivacion t WHERE t.fechaExpiracion < :fechaLimite")
+    int eliminarTokensExpirados(@Param("fechaLimite") LocalDateTime fechaLimite);
 }

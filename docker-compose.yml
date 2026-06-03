@@ -30,10 +30,15 @@ services:
     container_name: atlas-msautenticacion
     ports:
       - "8081:8081"
+    env_file:
+      - .env
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/atlas_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
     depends_on:
       postgres:
         condition: service_healthy

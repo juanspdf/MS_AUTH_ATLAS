@@ -1,6 +1,8 @@
 package com.sistemasgaia.atlas.msautenticacion.security;
 
 import com.sistemasgaia.atlas.msautenticacion.services.TokenInvalidadoService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -69,7 +71,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Verificar si el token está en la blacklist (logout previo)
                 if (tokenInvalidadoService.isTokenInvalidado(jwt)) {
                     log.warn("Token invalidado (logout) detectado para usuario: {}", username);
-                    filterChain.doFilter(request, response);
+                    enviarError401(response, "Token invalidado por cierre de sesión");
                     return;
                 }
 
@@ -109,12 +111,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             new WebAuthenticationDetailsSource().buildDetails(request)
                     );
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                    filterChain.doFilter(request, response);
+                    return;
                 }
             }
+        } catch (ExpiredJwtException e) {
+            log.warn("Token JWT expirado: {}", e.getMessage());
+            enviarError401(response, "Token JWT expirado");
+            return;
+        } catch (SignatureException e) {
+            log.warn("Firma JWT inválida: {}", e.getMessage());
+            enviarError401(response, "Token JWT inválido");
+            return;
         } catch (Exception e) {
             log.error("Error procesando token JWT: {}", e.getMessage());
+            enviarError401(response, "Token JWT inválido");
+            return;
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void enviarError401(HttpServletResponse response, String mensaje) throws IOException {
+        response.setContentType("application/json;charset=UTF-8");
+        response.setStatus(401);
+        response.getWriter().write("{\"status\":401,\"mensaje\":\"" + mensaje + "\",\"timestamp\":\"" + java.time.LocalDateTime.now() + "\"}");
     }
 }

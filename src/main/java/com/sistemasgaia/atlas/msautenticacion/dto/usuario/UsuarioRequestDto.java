@@ -3,6 +3,7 @@ package com.sistemasgaia.atlas.msautenticacion.dto.usuario;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
@@ -20,8 +21,9 @@ public class UsuarioRequestDto {
     @Size(max = 10, message = "El nombre de usuario no puede exceder 10 caracteres")
     private String nombreUsuario;
 
-    @NotBlank(message = "La contraseña es obligatoria")
-    @Size(min = 6, max = 255, message = "La contraseña debe tener entre 6 y 255 caracteres")
+    @Size(min = 8, max = 255, message = "La contraseña debe tener entre 8 y 255 caracteres")
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$",
+            message = "La contraseña debe contener al menos una mayúscula, una minúscula y un dígito")
     private String contrasenia;
 
     @NotBlank(message = "El correo electrónico es obligatorio")

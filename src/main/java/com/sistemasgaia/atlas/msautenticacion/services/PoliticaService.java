@@ -49,7 +49,7 @@ public class PoliticaService {
     @Transactional(readOnly = true)
     public List<PoliticaResponseDto> listarTodas() {
         log.info("Consultando todas las políticas del sistema");
-        return politicaRepository.findAll().stream()
+        return politicaRepository.findByActivoTrue().stream()
                 .map(this::toResponseDto)
                 .toList();
     }
@@ -180,7 +180,7 @@ public class PoliticaService {
         String tipoRol = usuario.getRol().getTipoRol().name();
         log.info("Usuario: {} | Rol: {} (ID: {})", usuario.getNombreUsuario(), tipoRol, rolId);
 
-        // 2. Validar que todas las políticas existan
+        // 2. Validar que todas las políticas existan y estén activas
         List<Politica> politicas = politicaRepository.findAllById(request.getPoliticasIds());
         if (politicas.size() != request.getPoliticasIds().size()) {
             List<UUID> encontrados = politicas.stream().map(Politica::getId).toList();
@@ -189,6 +189,15 @@ public class PoliticaService {
                     .toList();
             throw new ResourceNotFoundException(
                     "Políticas no encontradas con IDs: " + noEncontrados);
+        }
+
+        List<Politica> politicasInactivas = politicas.stream()
+                .filter(p -> !p.getActivo())
+                .toList();
+        if (!politicasInactivas.isEmpty()) {
+            throw new BusinessException(
+                    "No se pueden asignar políticas inactivas: " + politicasInactivas.stream()
+                            .map(Politica::getNombrePolitica).toList());
         }
 
         // 3. Obtener políticas ya asignadas al rol

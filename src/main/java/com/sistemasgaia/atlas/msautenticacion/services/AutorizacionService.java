@@ -19,8 +19,8 @@ import java.util.List;
  * Flujo RBAC:
  * 1. Un usuario tiene un ROL
  * 2. Un ROL tiene N políticas (vía DetallePolitica)
- * 3. Cada política representa un permiso granular (ej: CREAR_POLITICA, EDITAR_POLITICA)
- * 4. La autorización valida: hasRole('ADMIN') AND hasAuthority('CREAR_POLITICA')
+ * 3. Cada política representa un permiso granular (ej: POLITICA_CREAR, POLITICA_EDITAR)
+ * 4. La autorización valida: hasRole('ADMIN') AND hasAuthority('POLITICA_CREAR')
  */
 @Slf4j
 @Service
@@ -36,7 +36,7 @@ public class AutorizacionService {
      * la lista de GrantedAuthority del usuario autenticado.
      *
      * @param rolId ID del rol
-     * @return lista de nombres de políticas (ej: ["CREAR_POLITICA", "VER_POLITICAS"])
+     * @return lista de nombres de políticas (ej: ["POLITICA_CREAR_USUARIO", "POLITICA_VER_REPORTES"])
      */
     @Transactional(readOnly = true)
     public List<String> obtenerPoliticasPorRolId(Integer rolId) {

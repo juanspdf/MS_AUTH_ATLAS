@@ -46,17 +46,32 @@ public class EmailService {
     }
 
     private void enviarCorreoHtml(String destinatario, String asunto, String contenidoHtml) {
-        try {
-            MimeMessage mensaje = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mensaje, true, "UTF-8");
-            helper.setFrom(fromEmail, fromName);
-            helper.setTo(destinatario);
-            helper.setSubject(asunto);
-            helper.setText(contenidoHtml, true);
-            mailSender.send(mensaje);
-        } catch (MessagingException | java.io.UnsupportedEncodingException e) {
-            log.error("Error enviando correo a {}: {}", destinatario, e.getMessage());
-            throw new RuntimeException("Error al enviar correo electronico", e);
+        int maxIntentos = 3;
+        int intento = 0;
+        while (intento < maxIntentos) {
+            try {
+                MimeMessage mensaje = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(mensaje, true, "UTF-8");
+                helper.setFrom(fromEmail, fromName);
+                helper.setTo(destinatario);
+                helper.setSubject(asunto);
+                helper.setText(contenidoHtml, true);
+                mailSender.send(mensaje);
+                return;
+            } catch (MessagingException | java.io.UnsupportedEncodingException e) {
+                intento++;
+                log.error("Error enviando correo a {} (intento {}/{}): {}", destinatario, intento, maxIntentos, e.getMessage());
+                if (intento >= maxIntentos) {
+                    log.error("Fallo definitivo al enviar correo a {} después de {} intentos", destinatario, maxIntentos);
+                } else {
+                    try {
+                        Thread.sleep(1000L * intento);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("Interrupción en reintento de envío de correo", ie);
+                    }
+                }
+            }
         }
     }
 

@@ -19,7 +19,7 @@ import lombok.*;
 public class PoliticaRequestDto {
 
     @NotBlank(message = "El nombre de la política es obligatorio")
-    @Size(max = 24, message = "El nombre de la política no debe exceder 24 caracteres")
-    @Pattern(regexp = "^[A-Z_]+$", message = "El nombre de la política solo debe contener letras mayúsculas y guiones bajos (ej: CREAR_POLITICA)")
+    @Size(max = 40, message = "El nombre de la política no debe exceder 40 caracteres")
+    @Pattern(regexp = "^[A-Z_]+$", message = "El nombre de la política solo debe contener letras mayúsculas y guiones bajos (ej: POLITICA_CREAR_USUARIO)")
     private String nombrePolitica;
 }

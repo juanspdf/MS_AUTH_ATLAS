@@ -1,1385 +1,1255 @@
 {
-	"info": {
-		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-		"name": "ATLAS - msautenticacion",
-		"description": "Colección completa para probar el microservicio de autenticación y gestión de usuarios del sistema ATLAS.\n\n## Flujo de uso\n1. Ejecutar **Login** para obtener el token JWT\n2. El token se guarda automáticamente en la variable `{{token}}`\n3. Los demás endpoints usan el token automáticamente\n\n## Credenciales de prueba\n- **Usuario:** admin\n- **Contraseña:** admin123",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-	},
-	"variable": [
-		{
-			"key": "baseUrl",
-			"value": "http://localhost:8081/ms-autenticacion",
-			"type": "string"
-		},
-		{
-			"key": "token",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "usuarioId",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "politicaId",
-			"value": "",
-			"type": "string"
-		}
-	],
-	"item": [
-		{
-			"name": "🔐 Auth",
-			"description": "Endpoints de autenticación",
-			"item": [
-				{
-					"name": "Login (admin/admin123)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 200) {",
-									"    var jsonData = pm.response.json();",
-									"    pm.collectionVariables.set('token', jsonData.datos.token);",
-									"    pm.collectionVariables.set('usuarioId', jsonData.datos.idUsuario);",
-									"    ",
-									"    pm.test('Login exitoso', function () {",
-									"        pm.expect(jsonData.status).to.eql(200);",
-									"        pm.expect(jsonData.datos.token).to.be.a('string');",
-									"        pm.expect(jsonData.datos.tipo).to.eql('Bearer');",
-									"        pm.expect(jsonData.datos.rol).to.eql('ADMIN');",
-									"    });",
-									"    ",
-									"    pm.test('Token guardado en variables', function () {",
-									"        pm.expect(pm.collectionVariables.get('token')).to.not.be.empty;",
-									"    });",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"nombreUsuario\": \"admin\",\n    \"contrasenia\": \"admin123\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/auth/login",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"auth",
-								"login"
-							]
-						},
-						"description": "Autentica al usuario y retorna un JWT.\n\nEl token se guarda automáticamente en la variable `{{token}}` para ser usado en los demás requests."
-					},
-					"response": []
-				},
-				{
-					"name": "Login - Credenciales inválidas",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Retorna 401 Unauthorized', function () {",
-									"    pm.response.to.have.status(401);",
-									"});",
-									"",
-									"pm.test('Mensaje de error correcto', function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.status).to.eql(401);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"nombreUsuario\": \"admin\",\n    \"contrasenia\": \"wrongpassword\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/auth/login",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"auth",
-								"login"
-							]
-						},
-						"description": "Prueba de login con credenciales incorrectas. Debe retornar 401."
-					},
-					"response": []
-				},
-				{
-					"name": "Login - Validación (campos vacíos)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Retorna 400 Bad Request', function () {",
-									"    pm.response.to.have.status(400);",
-									"});",
-									"",
-									"pm.test('Contiene errores de validación', function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.errores).to.be.an('array').that.is.not.empty;",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"nombreUsuario\": \"\",\n    \"contrasenia\": \"\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/auth/login",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"auth",
-								"login"
-							]
-						},
-						"description": "Prueba de validación con campos vacíos. Debe retornar 400 con lista de errores."
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "👤 Usuarios",
-			"description": "CRUD completo de usuarios. Requiere token JWT.",
-			"item": [
-				{
-					"name": "Listar todos los usuarios",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Status 200', function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test('Retorna lista de usuarios', function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.datos).to.be.an('array');",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/api/usuarios",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"usuarios"
-							]
-						},
-						"description": "Obtiene todos los usuarios registrados."
-					},
-					"response": []
-				},
-				{
-					"name": "Buscar usuario por ID",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Status 200', function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test('Retorna datos del usuario', function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.datos.id).to.eql(pm.collectionVariables.get('usuarioId'));",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"usuarios",
-								"{{usuarioId}}"
-							]
-						},
-						"description": "Busca un usuario por su UUID. Usa el ID del usuario autenticado (guardado del login)."
-					},
-					"response": []
-				},
-				{
-					"name": "Crear usuario (SUPERVISOR)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 201) {",
-									"    var jsonData = pm.response.json();",
-									"    pm.collectionVariables.set('usuarioId', jsonData.datos.id);",
-									"    ",
-									"    pm.test('Usuario creado correctamente', function () {",
-									"        pm.expect(jsonData.status).to.eql(201);",
-									"        pm.expect(jsonData.datos.nombreUsuario).to.eql('jperez');",
-									"        pm.expect(jsonData.datos.tipoRol).to.eql('SUPERVISOR');",
-									"    });",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"nombreUsuario\": \"jperez\",\n    \"contrasenia\": \"pass1234\",\n    \"nombre\": \"Juan\",\n    \"apellido\": \"Pérez\",\n    \"rolId\": 2\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/usuarios",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"usuarios"
-							]
-						},
-						"description": "Crea un nuevo usuario con rol SUPERVISOR (rolId: 2).\n\nEl ID del usuario creado se guarda en `{{usuarioId}}`."
-					},
-					"response": []
-				},
-				{
-					"name": "Crear usuario (CLIENTE)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 201) {",
-									"    var jsonData = pm.response.json();",
-									"    ",
-									"    pm.test('Usuario CLIENTE creado', function () {",
-									"        pm.expect(jsonData.status).to.eql(201);",
-									"        pm.expect(jsonData.datos.tipoRol).to.eql('CLIENTE');",
-									"    });",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"nombreUsuario\": \"mlopez\",\n    \"contrasenia\": \"cliente99\",\n    \"nombre\": \"María\",\n    \"apellido\": \"López\",\n    \"rolId\": 3\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/usuarios",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"usuarios"
-							]
-						},
-						"description": "Crea un nuevo usuario con rol CLIENTE (rolId: 3)."
-					},
-					"response": []
-				},
-				{
-					"name": "Crear usuario - Duplicado (409)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Retorna 409 Conflict', function () {",
-									"    pm.response.to.have.status(409);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"nombreUsuario\": \"admin\",\n    \"contrasenia\": \"test1234\",\n    \"nombre\": \"Test\",\n    \"apellido\": \"Duplicado\",\n    \"rolId\": 1\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/usuarios",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"usuarios"
-							]
-						},
-						"description": "Intenta crear un usuario con nombre de usuario ya existente. Debe retornar 409."
-					},
-					"response": []
-				},
-				{
-					"name": "Crear usuario - Validación (400)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Retorna 400', function () {",
-									"    pm.response.to.have.status(400);",
-									"});",
-									"",
-									"pm.test('Contiene errores de validación', function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.errores).to.be.an('array').that.is.not.empty;",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"nombreUsuario\": \"\",\n    \"contrasenia\": \"ab\",\n    \"nombre\": \"\",\n    \"apellido\": \"\",\n    \"rolId\": null\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/usuarios",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"usuarios"
-							]
-						},
-						"description": "Envía datos inválidos. Debe retornar 400 con lista de errores de validación."
-					},
-					"response": []
-				},
-				{
-					"name": "Actualizar usuario",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Status 200', function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test('Datos actualizados', function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.datos.nombre).to.eql('Juan Carlos');",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"nombreUsuario\": \"jperez\",\n    \"contrasenia\": \"newpass99\",\n    \"nombre\": \"Juan Carlos\",\n    \"apellido\": \"Pérez García\",\n    \"rolId\": 2\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"usuarios",
-								"{{usuarioId}}"
-							]
-						},
-						"description": "Actualiza los datos del usuario creado anteriormente."
-					},
-					"response": []
-				},
-				{
-					"name": "Eliminar usuario (soft delete)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Status 200', function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test('Mensaje de eliminación', function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.mensaje).to.include('eliminado');",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"usuarios",
-								"{{usuarioId}}"
-							]
-						},
-						"description": "Realiza soft delete (activo = false) del usuario."
-					},
-					"response": []
-				},
-				{
-					"name": "Buscar usuario inexistente (404)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Retorna 404', function () {",
-									"    pm.response.to.have.status(404);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/api/usuarios/00000000-0000-0000-0000-000000000000",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"usuarios",
-								"00000000-0000-0000-0000-000000000000"
-							]
-						},
-						"description": "Busca un usuario con UUID inexistente. Debe retornar 404."
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "📋 Políticas RBAC",
-			"description": "CRUD completo de políticas/permisos. Requiere ROLE_ADMIN + política específica.",
-			"item": [
-				{
-					"name": "Listar todas las políticas",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Status 200', function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test('Retorna lista de políticas', function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.datos).to.be.an('array');",
-									"});",
-									"",
-									"// Guardar ID de la primera política si existe",
-									"if (pm.response.code === 200) {",
-									"    var jsonData = pm.response.json();",
-									"    if (jsonData.datos && jsonData.datos.length > 0) {",
-									"        pm.collectionVariables.set('politicaId', jsonData.datos[0].id);",
-									"    }",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/api/politicas",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"politicas"
-							]
-						},
-						"description": "Obtiene todas las políticas registradas.\n\nRequiere: ROLE_ADMIN + VER_POLITICAS"
-					},
-					"response": []
-				},
-				{
-					"name": "Buscar política por ID",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Status 200', function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test('Retorna datos de la política', function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.datos.id).to.be.a('string');",
-									"    pm.expect(jsonData.datos.nombrePolitica).to.be.a('string');",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/api/politicas/{{politicaId}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"politicas",
-								"{{politicaId}}"
-							]
-						},
-						"description": "Busca una política por su UUID.\n\nRequiere: ROLE_ADMIN + VER_POLITICAS"
-					},
-					"response": []
-				},
-				{
-					"name": "Crear política",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 201) {",
-									"    var jsonData = pm.response.json();",
-									"    pm.collectionVariables.set('politicaId', jsonData.datos.id);",
-									"    ",
-									"    pm.test('Política creada correctamente', function () {",
-									"        pm.expect(jsonData.status).to.eql(201);",
-									"        pm.expect(jsonData.datos.nombrePolitica).to.eql('GENERAR_REPORTE');",
-									"        pm.expect(jsonData.datos.activo).to.eql(true);",
-									"    });",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"nombrePolitica\": \"GENERAR_REPORTE\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/politicas",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"politicas"
-							]
-						},
-						"description": "Crea una nueva política/permiso.\n\nRequiere: ROLE_ADMIN + CREAR_POLITICA\n\nEl nombre debe ser en MAYÚSCULAS con guiones bajos."
-					},
-					"response": []
-				},
-				{
-					"name": "Crear política - Duplicada (409)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Retorna 409 Conflict', function () {",
-									"    pm.response.to.have.status(409);",
-									"});",
-									"",
-									"pm.test('Mensaje de duplicado', function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.mensaje).to.include('Ya existe');",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"nombrePolitica\": \"GENERAR_REPORTE\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/politicas",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"politicas"
-							]
-						},
-						"description": "Intenta crear una política con nombre ya existente. Debe retornar 409."
-					},
-					"response": []
-				},
-				{
-					"name": "Crear política - Validación (400)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Retorna 400', function () {",
-									"    pm.response.to.have.status(400);",
-									"});",
-									"",
-									"pm.test('Contiene errores de validación', function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.errores).to.be.an('array').that.is.not.empty;",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"nombrePolitica\": \"nombre inválido minúsculas\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/politicas",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"politicas"
-							]
-						},
-						"description": "Envía nombre inválido (minúsculas). Debe retornar 400 con error de validación de patrón."
-					},
-					"response": []
-				},
-				{
-					"name": "Actualizar política",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Status 200', function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test('Política actualizada', function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.datos.nombrePolitica).to.eql('EXPORTAR_REPORTE');",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"nombrePolitica\": \"EXPORTAR_REPORTE\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/politicas/{{politicaId}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"politicas",
-								"{{politicaId}}"
-							]
-						},
-						"description": "Actualiza el nombre de la política.\n\nRequiere: ROLE_ADMIN + EDITAR_POLITICA"
-					},
-					"response": []
-				},
-				{
-					"name": "Eliminar política (soft delete)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Status 200', function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test('Mensaje de eliminación', function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.mensaje).to.include('eliminada');",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/api/politicas/{{politicaId}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"politicas",
-								"{{politicaId}}"
-							]
-						},
-						"description": "Soft delete de la política (activo = false).\n\nRequiere: ROLE_ADMIN + ELIMINAR_POLITICA"
-					},
-					"response": []
-				},
-				{
-					"name": "Buscar política inexistente (404)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Retorna 404', function () {",
-									"    pm.response.to.have.status(404);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/api/politicas/00000000-0000-0000-0000-000000000000",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"politicas",
-								"00000000-0000-0000-0000-000000000000"
-							]
-						},
-						"description": "Busca una política con UUID inexistente. Debe retornar 404."
-					},
-					"response": []
-				},
-				{
-					"name": "Listar políticas SIN token (401)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Retorna 401 sin token', function () {",
-									"    pm.expect([401, 403]).to.include(pm.response.code);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/politicas",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"politicas"
-							]
-						},
-						"description": "Intenta listar políticas sin token JWT. Debe retornar 401."
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "🔗 Asignación de Políticas",
-			"description": "Asignar políticas al ROL del usuario. Requiere ROLE_ADMIN + ASIGNAR_POLITICAS.",
-			"item": [
-				{
-					"name": "Asignar políticas a usuario (vía rol)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 200) {",
-									"    var jsonData = pm.response.json();",
-									"    ",
-									"    pm.test('Asignación exitosa', function () {",
-									"        pm.expect(jsonData.status).to.eql(200);",
-									"        pm.expect(jsonData.datos.nombreUsuario).to.be.a('string');",
-									"        pm.expect(jsonData.datos.tipoRol).to.be.a('string');",
-									"        pm.expect(jsonData.datos.politicasAsignadas).to.be.a('number');",
-									"    });",
-									"    ",
-									"    pm.test('Resumen de asignación presente', function () {",
-									"        pm.expect(jsonData.datos.politicasNuevas).to.be.an('array');",
-									"        pm.expect(jsonData.datos.politicasYaExistentes).to.be.an('array');",
-									"    });",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"politicasIds\": [\n        \"{{politicaId}}\"\n    ]\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}/politicas",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"usuarios",
-								"{{usuarioId}}",
-								"politicas"
-							]
-						},
-						"description": "Asigna políticas al ROL del usuario.\n\nRequiere: ROLE_ADMIN + ASIGNAR_POLITICAS\n\nLas políticas se asignan al ROL, no al usuario directamente.\nSe evitan duplicados automáticamente."
-					},
-					"response": []
-				},
-				{
-					"name": "Asignar políticas - Duplicadas",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 200) {",
-									"    var jsonData = pm.response.json();",
-									"    ",
-									"    pm.test('Duplicados detectados', function () {",
-									"        pm.expect(jsonData.datos.politicasDuplicadas).to.be.at.least(1);",
-									"        pm.expect(jsonData.datos.politicasYaExistentes).to.be.an('array').that.is.not.empty;",
-									"    });",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"politicasIds\": [\n        \"{{politicaId}}\"\n    ]\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}/politicas",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"usuarios",
-								"{{usuarioId}}",
-								"politicas"
-							]
-						},
-						"description": "Intenta asignar la misma política otra vez. Debe detectar duplicados y no fallar."
-					},
-					"response": []
-				},
-				{
-					"name": "Asignar políticas - Usuario inexistente (404)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Retorna 404', function () {",
-									"    pm.response.to.have.status(404);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"politicasIds\": [\n        \"{{politicaId}}\"\n    ]\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/usuarios/00000000-0000-0000-0000-000000000000/politicas",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"usuarios",
-								"00000000-0000-0000-0000-000000000000",
-								"politicas"
-							]
-						},
-						"description": "Intenta asignar políticas a un usuario inexistente. Debe retornar 404."
-					},
-					"response": []
-				},
-				{
-					"name": "Asignar políticas - Lista vacía (400)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Retorna 400', function () {",
-									"    pm.response.to.have.status(400);",
-									"});",
-									"",
-									"pm.test('Error de validación', function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.errores).to.be.an('array').that.is.not.empty;",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"politicasIds\": []\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}/politicas",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"usuarios",
-								"{{usuarioId}}",
-								"politicas"
-							]
-						},
-						"description": "Envía lista vacía de políticas. Debe retornar 400 con error de validación."
-					},
-					"response": []
-				},
-				{
-					"name": "Asignar políticas - Política inexistente (404)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Retorna 404', function () {",
-									"    pm.response.to.have.status(404);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"politicasIds\": [\n        \"00000000-0000-0000-0000-000000000000\"\n    ]\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}/politicas",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"usuarios",
-								"{{usuarioId}}",
-								"politicas"
-							]
-						},
-						"description": "Intenta asignar una política con UUID inexistente. Debe retornar 404."
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "❤️ Health & Info",
-			"description": "Actuator endpoints",
-			"item": [
-				{
-					"name": "Health Check",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Status 200', function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test('Status UP', function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.status).to.eql('UP');",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/actuator/health",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"actuator",
-								"health"
-							]
-						},
-						"description": "Health check del microservicio (público, no requiere token)."
-					},
-					"response": []
-				},
-				{
-					"name": "Swagger UI (abrir en navegador)",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/swagger-ui.html",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"swagger-ui.html"
-							]
-						},
-						"description": "Abrir esta URL en el navegador para ver la documentación Swagger interactiva."
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "🔒 Sin Token (401)",
-			"description": "Pruebas de endpoints protegidos sin token",
-			"item": [
-				{
-					"name": "Listar usuarios SIN token",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Retorna 403 Forbidden', function () {",
-									"    pm.expect([401, 403]).to.include(pm.response.code);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/usuarios",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"usuarios"
-							]
-						},
-						"description": "Intenta acceder a un endpoint protegido sin enviar token. Debe retornar 401/403."
-					},
-					"response": []
-				}
-			]
-		}
-	]
+  "info": {
+    "name": "ATLAS - msautenticacion v2",
+    "description": "Coleccion completa para probar el microservicio de autenticacion y autorizacion del sistema ATLAS.\n\nRoles del sistema:\n- ADMIN (rolId: 1) - Acceso total\n- CONSULTOR (rolId: 2) - Evaluaciones a normas\n- GESTOR_NORMAS (rolId: 3) - Gestion de normas\n\nFlujo basico:\n1. Ejecutar Login para obtener el token JWT\n2. El token se guarda automaticamente en {{token}}\n3. Probar los demas endpoints\n\nCredenciales:\n- Usuario: admin / Contrasena: admin123",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081/ms-autenticacion",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "usuarioId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "politicaId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Auth - Login / Logout",
+      "description": "Endpoints de autenticacion. Login genera JWT, Logout lo invalida.",
+      "item": [
+        {
+          "name": "Login - admin/admin123",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nombreUsuario\": \"admin\",\n    \"contrasenia\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login - Credenciales invalidas (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nombreUsuario\": \"admin\",\n    \"contrasenia\": \"wrongpassword\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login - Validacion campos vacios (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nombreUsuario\": \"\",\n    \"contrasenia\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout - Invalida el token actual",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Registro de Usuarios",
+      "description": "Registro publico de nuevos usuarios. Reciben un correo para activar su cuenta.",
+      "item": [
+        {
+          "name": "Registrar - CONSULTOR por defecto (sin rolId)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nombreUsuario\": \"testuser\",\n    \"correo\": \"testuser@gmail.com\",\n    \"nombre\": \"Test\",\n    \"apellido\": \"User\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar - CONSULTOR (rolId 2)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nombreUsuario\": \"consultor1\",\n    \"correo\": \"consultor1@gmail.com\",\n    \"nombre\": \"Carlos\",\n    \"apellido\": \"Evalua\",\n    \"rolId\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar - GESTOR_NORMAS (rolId 3)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nombreUsuario\": \"gestor1\",\n    \"correo\": \"gestor1@gmail.com\",\n    \"nombre\": \"Maria\",\n    \"apellido\": \"Gestion\",\n    \"rolId\": 3\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar - Duplicado username (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nombreUsuario\": \"admin\",\n    \"correo\": \"otrocorreo@gmail.com\",\n    \"nombre\": \"Admin\",\n    \"apellido\": \"Duplicado\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar - Duplicado correo (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nombreUsuario\": \"otrousuario\",\n    \"correo\": \"admin@sistemasgaia.com\",\n    \"nombre\": \"Otro\",\n    \"apellido\": \"Usuario\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar - Validacion (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nombreUsuario\": \"\",\n    \"correo\": \"invalido\",\n    \"nombre\": \"\",\n    \"apellido\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Activacion / Recuperacion",
+      "description": "Flujo de activacion de cuenta y recuperacion de contrasena via token.",
+      "item": [
+        {
+          "name": "Validar Token de activacion",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/validar-token?token=INGRESAR_TOKEN_AQUI",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "validar-token"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "INGRESAR_TOKEN_AQUI"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Establecer contrasena (con token)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"token\": \"INGRESAR_TOKEN_AQUI\",\n    \"nuevaContrasenia\": \"Password123\",\n    \"confirmarContrasenia\": \"Password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/establecer-contrasenia",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "establecer-contrasenia"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Establecer contrasena - Contrasenas no coinciden (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"token\": \"token-cualquiera\",\n    \"nuevaContrasenia\": \"Password123\",\n    \"confirmarContrasenia\": \"Diferente789\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/establecer-contrasenia",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "establecer-contrasenia"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Recuperar contrasena (solicitar)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"correo\": \"admin@sistemasgaia.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/recuperar-contrasenia",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "recuperar-contrasenia"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reenviar activacion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"correo\": \"testuser@gmail.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/reenviar-activacion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "reenviar-activacion"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Usuarios CRUD (requiere ADMIN)",
+      "description": "CRUD de usuarios. Todos los endpoints requieren ROLE_ADMIN.",
+      "item": [
+        {
+          "name": "Listar todos los usuarios",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar usuario por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "{{usuarioId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Crear usuario CONSULTOR (rolId 2)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nombreUsuario\": \"jperez\",\n    \"contrasenia\": \"Pass1234\",\n    \"correo\": \"jperez@gmail.com\",\n    \"nombre\": \"Juan\",\n    \"apellido\": \"Perez\",\n    \"rolId\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Crear usuario GESTOR_NORMAS (rolId 3)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nombreUsuario\": \"mlopez\",\n    \"contrasenia\": \"Cliente99\",\n    \"correo\": \"mlopez@gmail.com\",\n    \"nombre\": \"Maria\",\n    \"apellido\": \"Lopez\",\n    \"rolId\": 3\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Crear usuario ADMIN (rolId 1)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nombreUsuario\": \"admin2\",\n    \"contrasenia\": \"Admin123\",\n    \"correo\": \"admin2@gmail.com\",\n    \"nombre\": \"Admin\",\n    \"apellido\": \"Dos\",\n    \"rolId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Crear usuario - Duplicado username (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nombreUsuario\": \"admin\",\n    \"contrasenia\": \"Test1234\",\n    \"correo\": \"otrocorreo@gmail.com\",\n    \"nombre\": \"Admin\",\n    \"apellido\": \"Duplicado\",\n    \"rolId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar usuario (sin contrasena opcional)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nombreUsuario\": \"jperez\",\n    \"correo\": \"jperez@gmail.com\",\n    \"nombre\": \"Juan Carlos\",\n    \"apellido\": \"Perez Garcia\",\n    \"rolId\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "{{usuarioId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar usuario (soft delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "{{usuarioId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar usuario inexistente (404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios/00000000-0000-0000-0000-000000000000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "00000000-0000-0000-0000-000000000000"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Politicas CRUD (requiere ADMIN + politica especifica)",
+      "description": "CRUD de politicas/permisos. Cada endpoint requiere ROLE_ADMIN y una politica especifica.",
+      "item": [
+        {
+          "name": "Listar todas las politicas activas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/politicas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "politicas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar politica por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/politicas/{{politicaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "politicas",
+                "{{politicaId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Crear politica (convencion POLITICA_)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nombrePolitica\": \"POLITICA_EVALUAR_NORMA\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/politicas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "politicas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Crear politica - Duplicada (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nombrePolitica\": \"POLITICA_EVALUAR_NORMA\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/politicas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "politicas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Crear politica - Validacion nombre (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nombrePolitica\": \"nombre con minusculas\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/politicas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "politicas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar politica",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nombrePolitica\": \"POLITICA_REVISAR_NORMA\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/politicas/{{politicaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "politicas",
+                "{{politicaId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar politica (soft delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/politicas/{{politicaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "politicas",
+                "{{politicaId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar politica inexistente (404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/politicas/00000000-0000-0000-0000-000000000000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "politicas",
+                "00000000-0000-0000-0000-000000000000"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Asignacion de Politicas",
+      "description": "Asignar politicas al ROL del usuario. Requiere ROLE_ADMIN + POLITICA_ASIGNAR.",
+      "item": [
+        {
+          "name": "Asignar politica a usuario (v1: /api/usuarios/{id}/politicas)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"politicasIds\": [\n        \"{{politicaId}}\"\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}/politicas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "{{usuarioId}}",
+                "politicas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Asignar politica a usuario (v2: /api/politicas/usuarios/{id})",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"politicasIds\": [\n        \"{{politicaId}}\"\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/politicas/usuarios/{{usuarioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "politicas",
+                "usuarios",
+                "{{usuarioId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Asignar politica - Duplicada (detecta duplicados)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"politicasIds\": [\n        \"{{politicaId}}\"\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}/politicas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "{{usuarioId}}",
+                "politicas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Asignar politica - Usuario inexistente (404)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"politicasIds\": [\n        \"{{politicaId}}\"\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios/00000000-0000-0000-0000-000000000000/politicas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "00000000-0000-0000-0000-000000000000",
+                "politicas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Asignar politica - Lista vacia (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"politicasIds\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}/politicas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "{{usuarioId}}",
+                "politicas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Asignar politica - Politica inexistente (404)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"politicasIds\": [\n        \"00000000-0000-0000-0000-000000000000\"\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}/politicas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "{{usuarioId}}",
+                "politicas"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Health y Documentacion",
+      "description": "Endpoints de salud y documentacion de la API.",
+      "item": [
+        {
+          "name": "Health Check (publico)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "actuator",
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Swagger UI (abrir en navegador)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/swagger-ui.html",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "swagger-ui.html"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "8. Errores 401 / 403",
+      "description": "Pruebas de seguridad: endpoints protegidos sin token o sin permisos.",
+      "item": [
+        {
+          "name": "Listar usuarios SIN token (401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar usuarios con token invalido (401)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiJ9.tokenInvalido"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar politicas SIN token (401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/politicas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "politicas"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
 }

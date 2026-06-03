@@ -42,12 +42,12 @@ public class PoliticaController {
 
     /**
      * Lista todas las políticas del sistema.
-     * Requiere: ROLE_ADMIN + VER_POLITICAS
+     * Requiere: ROLE_ADMIN + POLITICA_VER
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') and hasAuthority('VER_POLITICAS')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Listar políticas",
-            description = "Obtiene todas las políticas registradas. Requiere ROLE_ADMIN y permiso VER_POLITICAS")
+            description = "Obtiene todas las políticas registradas. Requiere ROLE_ADMIN")
     public ResponseEntity<ApiResponseDto<List<PoliticaResponseDto>>> listarTodas() {
         log.info("Request: GET /api/politicas");
         List<PoliticaResponseDto> politicas = politicaService.listarTodas();
@@ -57,12 +57,12 @@ public class PoliticaController {
 
     /**
      * Busca una política por su ID.
-     * Requiere: ROLE_ADMIN + VER_POLITICAS
+     * Requiere: ROLE_ADMIN + POLITICA_VER
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') and hasAuthority('VER_POLITICAS')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Buscar política por ID",
-            description = "Obtiene una política específica. Requiere ROLE_ADMIN y permiso VER_POLITICAS")
+            description = "Obtiene una política específica. Requiere ROLE_ADMIN")
     public ResponseEntity<ApiResponseDto<PoliticaResponseDto>> buscarPorId(@PathVariable UUID id) {
         log.info("Request: GET /api/politicas/{}", id);
         PoliticaResponseDto politica = politicaService.buscarPorId(id);
@@ -72,12 +72,12 @@ public class PoliticaController {
 
     /**
      * Crea una nueva política.
-     * Requiere: ROLE_ADMIN + CREAR_POLITICA
+     * Requiere: ROLE_ADMIN + POLITICA_CREAR
      */
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') and hasAuthority('CREAR_POLITICA')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Crear política",
-            description = "Crea una nueva política/permiso. Requiere ROLE_ADMIN y permiso CREAR_POLITICA")
+            description = "Crea una nueva política/permiso. Requiere ROLE_ADMIN")
     public ResponseEntity<ApiResponseDto<PoliticaResponseDto>> crear(
             @Valid @RequestBody PoliticaRequestDto request) {
         log.info("Request: POST /api/politicas | Nombre: {}", request.getNombrePolitica());
@@ -88,12 +88,12 @@ public class PoliticaController {
 
     /**
      * Actualiza una política existente.
-     * Requiere: ROLE_ADMIN + EDITAR_POLITICA
+     * Requiere: ROLE_ADMIN + POLITICA_EDITAR
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') and hasAuthority('EDITAR_POLITICA')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Actualizar política",
-            description = "Modifica una política existente. Requiere ROLE_ADMIN y permiso EDITAR_POLITICA")
+            description = "Modifica una política existente. Requiere ROLE_ADMIN")
     public ResponseEntity<ApiResponseDto<PoliticaResponseDto>> actualizar(
             @PathVariable UUID id,
             @Valid @RequestBody PoliticaRequestDto request) {
@@ -105,12 +105,12 @@ public class PoliticaController {
 
     /**
      * Elimina (soft delete) una política.
-     * Requiere: ROLE_ADMIN + ELIMINAR_POLITICA
+     * Requiere: ROLE_ADMIN + POLITICA_ELIMINAR
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') and hasAuthority('ELIMINAR_POLITICA')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Eliminar política",
-            description = "Desactiva una política (soft delete). Requiere ROLE_ADMIN y permiso ELIMINAR_POLITICA")
+            description = "Desactiva una política (soft delete). Requiere ROLE_ADMIN")
     public ResponseEntity<ApiResponseDto<Void>> eliminar(@PathVariable UUID id) {
         log.info("Request: DELETE /api/politicas/{}", id);
         politicaService.eliminar(id);
@@ -120,15 +120,15 @@ public class PoliticaController {
 
     /**
      * Asigna políticas al ROL del usuario especificado.
-     * Requiere: ROLE_ADMIN + ASIGNAR_POLITICAS
+     * Requiere: ROLE_ADMIN + POLITICA_ASIGNAR
      *
      * Las políticas se asignan al ROL, no directamente al usuario.
      * Se evitan duplicados automáticamente.
      */
     @PostMapping("/usuarios/{usuarioId}")
-    @PreAuthorize("hasRole('ADMIN') and hasAuthority('ASIGNAR_POLITICAS')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Asignar políticas a usuario",
-            description = "Asigna políticas al ROL del usuario. Requiere ROLE_ADMIN y permiso ASIGNAR_POLITICAS")
+            description = "Asigna políticas al ROL del usuario. Requiere ROLE_ADMIN")
     public ResponseEntity<ApiResponseDto<AsignarPoliticasResponseDto>> asignarPoliticas(
             @PathVariable UUID usuarioId,
             @Valid @RequestBody AsignarPoliticasRequestDto request) {

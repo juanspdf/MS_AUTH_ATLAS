@@ -118,9 +118,9 @@ public class TokenActivacionService {
     @Scheduled(fixedRate = 21600000) // Cada 6 horas
     @Transactional
     public void limpiarTokensExpirados() {
-        int eliminados = tokenActivacionRepository.eliminarTokensExpiradosUsados(LocalDateTime.now());
+        int eliminados = tokenActivacionRepository.eliminarTokensExpirados(LocalDateTime.now());
         if (eliminados > 0) {
-            log.info("Limpieza de tokens: {} tokens expirados y usados eliminados", eliminados);
+            log.info("Limpieza de tokens: {} tokens expirados eliminados", eliminados);
         }
     }
 }

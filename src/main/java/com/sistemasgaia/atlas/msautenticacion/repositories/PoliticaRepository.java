@@ -4,6 +4,7 @@ import com.sistemasgaia.atlas.msautenticacion.models.Politica;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,7 +21,7 @@ public interface PoliticaRepository extends JpaRepository<Politica, UUID> {
     boolean existsByNombrePolitica(String nombrePolitica);
 
     /**
-     * Busca una política por su nombre exacto.
+     * Busca todas las políticas activas.
      */
-    Optional<Politica> findByNombrePolitica(String nombrePolitica);
+    List<Politica> findByActivoTrue();
 }

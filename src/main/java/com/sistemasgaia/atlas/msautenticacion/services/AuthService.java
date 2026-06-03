@@ -85,9 +85,7 @@ public class AuthService {
                 .tipo("Bearer")
                 .idUsuario(usuario.getId())
                 .nombreUsuario(usuario.getNombreUsuario())
-                .nombreCompleto(usuario.getNombre() + " " + usuario.getApellido())
                 .rol(rol)
-                .politicas(politicas)
                 .build();
     }
 

@@ -64,15 +64,15 @@ public class RegistroService {
                     "El correo electrónico '" + request.getCorreo() + "' ya está registrado");
         }
 
-        // 3. Resolver rol (por defecto CLIENTE)
+        // 3. Resolver rol (por defecto CONSULTOR)
         final Integer requestRolId = request.getRolId();
         Rol rol;
         if (requestRolId != null) {
             rol = rolRepository.findById(requestRolId)
                     .orElseThrow(() -> new ResourceNotFoundException("Rol", "id", requestRolId));
         } else {
-            rol = rolRepository.findByTipoRol(TipoRol.CLIENTE)
-                    .orElseThrow(() -> new ResourceNotFoundException("Rol", "tipo", "CLIENTE"));
+            rol = rolRepository.findByTipoRol(TipoRol.CONSULTOR)
+                    .orElseThrow(() -> new ResourceNotFoundException("Rol", "tipo", "CONSULTOR"));
         }
         final Integer rolId = rol.getId();
 

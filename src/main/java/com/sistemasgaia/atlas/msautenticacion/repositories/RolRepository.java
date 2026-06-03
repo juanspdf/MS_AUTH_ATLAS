@@ -14,7 +14,7 @@ import java.util.Optional;
 public interface RolRepository extends JpaRepository<Rol, Integer> {
 
     /**
-     * Busca un rol por su tipo (ADMIN, SUPERVISOR, CLIENTE).
+     * Busca un rol por su tipo (ADMIN, CONSULTOR, GESTOR_NORMAS).
      */
     Optional<Rol> findByTipoRol(TipoRol tipoRol);
 }

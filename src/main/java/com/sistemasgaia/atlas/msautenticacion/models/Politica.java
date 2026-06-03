@@ -26,7 +26,7 @@ public class Politica extends AuditableEntity {
     @Column(name = "id_politica", columnDefinition = "uuid")
     private UUID id;
 
-    @Column(name = "politica", nullable = false, length = 24)
+    @Column(name = "politica", nullable = false, length = 40)
     private String nombrePolitica;
 
     @OneToMany(mappedBy = "politica", fetch = FetchType.LAZY)

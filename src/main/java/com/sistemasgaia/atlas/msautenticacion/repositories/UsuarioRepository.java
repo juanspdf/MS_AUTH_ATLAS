@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -47,4 +48,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
      * Busca un usuario por su correo electrónico (sin filtrar por activo).
      */
     Optional<Usuario> findByCorreo(String correo);
+
+    /**
+     * Busca todos los usuarios activos.
+     */
+    List<Usuario> findByActivoTrue();
 }

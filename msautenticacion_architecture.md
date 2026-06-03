@@ -25,7 +25,7 @@ src/main/java/com/sistemasgaia/atlas/msautenticacion/
 │       └── UsuarioResponseDto.java
 │
 ├── enums/
-│   └── TipoRol.java                        # ADMIN, SUPERVISOR, CLIENTE
+│   └── TipoRol.java                        # ADMIN, CONSULTOR, GESTOR_NORMAS
 │
 ├── exceptions/
 │   ├── BusinessException.java               # 409 Conflict
@@ -171,7 +171,7 @@ El token JWT generado contiene:
   "sub": "admin",
   "idUsuario": "a1b2c3d4-...",
   "rol": "ADMIN",
-  "politicas": ["CREAR_USUARIO", "ELIMINAR_USUARIO", "VER_REPORTES"],
+  "politicas": ["POLITICA_CREAR_USUARIO", "POLITICA_ELIMINAR_USUARIO", "POLITICA_VER_REPORTES"],
   "iat": 1716753600,
   "exp": 1716840000
 }
@@ -183,9 +183,9 @@ El token JWT generado contiene:
 
 | Entidad | Datos |
 |---------|-------|
-| **Roles** | ADMIN, SUPERVISOR, CLIENTE |
-| **Políticas** | CREAR_USUARIO, ELIMINAR_USUARIO, VER_REPORTES |
-| **Asignaciones** | ADMIN → todas las políticas, SUPERVISOR → VER_REPORTES |
+| **Roles** | ADMIN, CONSULTOR, GESTOR_NORMAS |
+| **Políticas** | POLITICA_CREAR_USUARIO, POLITICA_ELIMINAR_USUARIO, POLITICA_VER_REPORTES |
+| **Asignaciones** | ADMIN → todas las políticas, CONSULTOR → POLITICA_VER_REPORTES |
 | **Usuario** | admin / admin123 (BCrypt hash) |
 
 ---

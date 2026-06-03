@@ -37,7 +37,7 @@ public class AuthController {
     @Operation(
             summary = "Cerrar sesión",
             description = "Invalida el token JWT actual. El token no podrá ser utilizado en requests futuros.",
-            security = @SecurityRequirement(name = "Bearer Authentication")
+            security = @SecurityRequirement(name = "bearerAuth")
     )
     public ResponseEntity<ApiResponseDto<Void>> logout(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");

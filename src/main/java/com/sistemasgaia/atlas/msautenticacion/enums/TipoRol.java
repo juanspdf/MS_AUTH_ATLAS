@@ -6,6 +6,6 @@ package com.sistemasgaia.atlas.msautenticacion.enums;
  */
 public enum TipoRol {
     ADMIN,
-    SUPERVISOR,
-    CLIENTE
+    CONSULTOR,
+    GESTOR_NORMAS
 }

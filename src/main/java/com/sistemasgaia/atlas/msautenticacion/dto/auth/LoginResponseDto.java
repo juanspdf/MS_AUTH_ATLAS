@@ -2,7 +2,6 @@ package com.sistemasgaia.atlas.msautenticacion.dto.auth;
 
 import lombok.*;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -20,7 +19,5 @@ public class LoginResponseDto {
     private String tipo;
     private UUID idUsuario;
     private String nombreUsuario;
-    private String nombreCompleto;
     private String rol;
-    private List<String> politicas;
 }

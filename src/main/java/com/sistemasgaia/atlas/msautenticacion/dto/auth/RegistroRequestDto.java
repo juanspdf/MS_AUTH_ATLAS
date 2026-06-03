@@ -37,7 +37,7 @@ public class RegistroRequestDto {
     private String apellido;
 
     /**
-     * Rol a asignar al usuario. Si es null, se asigna el rol por defecto (CLIENTE).
+     * Rol a asignar al usuario. Si es null, se asigna el rol por defecto (CONSULTOR).
      */
     private Integer rolId;
 }

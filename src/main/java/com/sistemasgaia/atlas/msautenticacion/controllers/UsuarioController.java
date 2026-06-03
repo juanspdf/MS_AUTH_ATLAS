@@ -33,6 +33,7 @@ public class UsuarioController {
     private final PoliticaService politicaService;
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Listar usuarios", description = "Obtiene todos los usuarios registrados")
     public ResponseEntity<ApiResponseDto<List<UsuarioResponseDto>>> listarTodos() {
         List<UsuarioResponseDto> usuarios = usuarioService.listarTodos();
@@ -40,6 +41,7 @@ public class UsuarioController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Buscar usuario por ID")
     public ResponseEntity<ApiResponseDto<UsuarioResponseDto>> buscarPorId(@PathVariable UUID id) {
         UsuarioResponseDto usuario = usuarioService.buscarPorId(id);
@@ -47,6 +49,7 @@ public class UsuarioController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Crear usuario")
     public ResponseEntity<ApiResponseDto<UsuarioResponseDto>> crear(
             @Valid @RequestBody UsuarioRequestDto request) {
@@ -56,6 +59,7 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Actualizar usuario")
     public ResponseEntity<ApiResponseDto<UsuarioResponseDto>> actualizar(
             @PathVariable UUID id,
@@ -65,6 +69,7 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Eliminar usuario (soft delete)")
     public ResponseEntity<ApiResponseDto<Void>> eliminar(@PathVariable UUID id) {
         usuarioService.eliminar(id);
@@ -75,15 +80,15 @@ public class UsuarioController {
      * Asigna políticas al ROL del usuario especificado.
      * Endpoint: POST /api/usuarios/{usuarioId}/politicas
      *
-     * Requiere: ROLE_ADMIN + ASIGNAR_POLITICAS
+     * Requiere: ROLE_ADMIN + POLITICA_ASIGNAR
      *
      * Las políticas se asignan al ROL del usuario, no directamente al usuario.
      * Se evitan duplicados automáticamente.
      */
     @PostMapping("/{usuarioId}/politicas")
-    @PreAuthorize("hasRole('ADMIN') and hasAuthority('ASIGNAR_POLITICAS')")
+    @PreAuthorize("hasRole('ADMIN') and hasAuthority('POLITICA_ASIGNAR')")
     @Operation(summary = "Asignar políticas a usuario",
-            description = "Asigna políticas al ROL del usuario. Requiere ROLE_ADMIN y permiso ASIGNAR_POLITICAS")
+            description = "Asigna políticas al ROL del usuario. Requiere ROLE_ADMIN y permiso POLITICA_ASIGNAR")
     public ResponseEntity<ApiResponseDto<AsignarPoliticasResponseDto>> asignarPoliticas(
             @PathVariable UUID usuarioId,
             @Valid @RequestBody AsignarPoliticasRequestDto request) {

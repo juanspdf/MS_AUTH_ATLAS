@@ -23,10 +23,10 @@ import java.util.List;
  * con el siguiente esquema:
  *
  * 1. ROLE_<tipo_rol> → para hasRole('ADMIN')
- * 2. <nombre_politica> → para hasAuthority('CREAR_POLITICA')
+ * 2. <nombre_politica> → para hasAuthority('POLITICA_CREAR_USUARIO')
  *
  * Esto permite usar en @PreAuthorize:
- *   hasRole('ADMIN') and hasAuthority('CREAR_POLITICA')
+ *   hasRole('ADMIN') and hasAuthority('POLITICA_CREAR_USUARIO')
  *
  * Spring Security internamente prefija "ROLE_" para hasRole(),
  * mientras que hasAuthority() busca el valor exacto.
