@@ -47,10 +47,12 @@ spring:
   # ============================================================
   # Configurar con las credenciales de tu servidor SMTP.
   mail:
-    host: ${SMTP_HOST:smtp.gmail.com}
+    host: ${SMTP_HOST:smtp-relay.brevo.com}
     port: ${SMTP_PORT:587}
-    username: ${SMTP_USERNAME:tu-correo@gmail.com}
-    password: ${SMTP_PASSWORD:tu-app-password}
+    username: ${SMTP_USERNAME:user@smtp-brevo.com}
+    password: ${SMTP_PASSWORD:password}
+    protocol: smtp
+    default-encoding: UTF-8
     properties:
       mail:
         smtp:
@@ -61,6 +63,11 @@ spring:
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000
+          ssl:
+            protocols: TLSv1.2
+            trust: "*"
+          # Opcional: desabilitar validación SSL para desarrollo (NO usar en producción)
+          # ssl.checkserveridentity: false
 
 # ============================================================
 # JWT CONFIGURATION

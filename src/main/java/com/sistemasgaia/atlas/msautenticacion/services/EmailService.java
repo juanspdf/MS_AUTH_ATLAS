@@ -58,11 +58,12 @@ public class EmailService {
                 helper.setText(contenidoHtml, true);
                 mailSender.send(mensaje);
                 return;
-            } catch (MessagingException | java.io.UnsupportedEncodingException e) {
+            } catch (Exception e) {
                 intento++;
                 log.error("Error enviando correo a {} (intento {}/{}): {}", destinatario, intento, maxIntentos, e.getMessage());
                 if (intento >= maxIntentos) {
                     log.error("Fallo definitivo al enviar correo a {} después de {} intentos", destinatario, maxIntentos);
+                    throw new RuntimeException("Error al enviar correo. Por favor, intenta nuevamente más tarde.");
                 } else {
                     try {
                         Thread.sleep(1000L * intento);
