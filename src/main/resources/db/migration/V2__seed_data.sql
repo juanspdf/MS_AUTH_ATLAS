@@ -16,19 +16,19 @@ ON CONFLICT (politica) DO NOTHING;
 INSERT INTO sec.detalles_politicas (id_politica, rol_id)
 SELECT p.id_politica, r.rol_id FROM sec.politicas p, sec.roles r
 WHERE r.tipo_rol = 'ADMIN' AND p.activo = true
-ON CONFLICT DO NOTHING;
+ON CONFLICT (id_politica, rol_id) DO NOTHING;
 
 -- CONSULTOR tiene POLITICA_CARGAR_ARCHIVO_A_NORMA
 INSERT INTO sec.detalles_politicas (id_politica, rol_id)
 SELECT p.id_politica, r.rol_id FROM sec.politicas p, sec.roles r
 WHERE r.tipo_rol = 'CONSULTOR' AND p.politica = 'POLITICA_CARGAR_ARCHIVO_A_NORMA'
-ON CONFLICT DO NOTHING;
+ON CONFLICT (id_politica, rol_id) DO NOTHING;
 
 -- GESTOR_NORMAS tiene POLITICA_CARGAR_NORMAS
 INSERT INTO sec.detalles_politicas (id_politica, rol_id)
 SELECT p.id_politica, r.rol_id FROM sec.politicas p, sec.roles r
 WHERE r.tipo_rol = 'GESTOR_NORMAS' AND p.politica = 'POLITICA_CARGAR_NORMAS'
-ON CONFLICT DO NOTHING;
+ON CONFLICT (id_politica, rol_id) DO NOTHING;
 
 -- Usuario admin por defecto (admin / admin123)
 INSERT INTO usr.usuarios (nombre_usuario, contrasenia, correo, nombre, apellido, rol_id)

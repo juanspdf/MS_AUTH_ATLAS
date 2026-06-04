@@ -47,10 +47,10 @@ spring:
   # ============================================================
   # Configurar con las credenciales de tu servidor SMTP.
   mail:
-    host: ${SMTP_HOST:smtp-relay.brevo.com}
-    port: ${SMTP_PORT:587}
-    username: ${SMTP_USERNAME:user@smtp-brevo.com}
-    password: ${SMTP_PASSWORD:password}
+    host: ${MAIL_HOST:${SMTP_HOST:smtp-relay.brevo.com}}
+    port: ${MAIL_PORT:${SMTP_PORT:587}}
+    username: ${MAIL_USERNAME:${SMTP_USERNAME:ad621e001@smtp-brevo.com}}
+    password: ${MAIL_PASSWORD:${SMTP_PASSWORD:xsmtpsib-0a7aedd9927283dfa78153cb0d1812fb66a3df8a7a0bb59f7b116bd0c40fec38-YQj6qyXZ0CUrtxUF}}
     protocol: smtp
     default-encoding: UTF-8
     properties:
@@ -124,7 +124,7 @@ atlas:
   frontend:
     base-url: ${FRONTEND_URL:http://localhost:4200}
   email:
-    from: ${EMAIL_FROM:noreply@sistemasgaia.com}
+    from: ${EMAIL_FROM:jd.pasquel45@gmail.com}
     from-name: ${EMAIL_FROM_NAME:Sistema ATLAS}
   activacion:
     token-expiration-hours: ${TOKEN_EXPIRATION_HOURS:24}

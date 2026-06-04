@@ -1,15 +1,14 @@
 package com.sistemasgaia.atlas.msautenticacion.controllers;
 
 import com.sistemasgaia.atlas.msautenticacion.dto.ApiResponseDto;
-import com.sistemasgaia.atlas.msautenticacion.dto.politica.AsignarPoliticasRequestDto;
-import com.sistemasgaia.atlas.msautenticacion.dto.politica.AsignarPoliticasResponseDto;
 import com.sistemasgaia.atlas.msautenticacion.dto.usuario.UsuarioRequestDto;
 import com.sistemasgaia.atlas.msautenticacion.dto.usuario.UsuarioResponseDto;
-import com.sistemasgaia.atlas.msautenticacion.services.PoliticaService;
+import com.sistemasgaia.atlas.msautenticacion.security.JwtService;
 import com.sistemasgaia.atlas.msautenticacion.services.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,11 +25,11 @@ import java.util.UUID;
 @RequestMapping("/api/usuarios")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
-@Tag(name = "Usuarios", description = "CRUD de usuarios del sistema y asignación de políticas")
+@Tag(name = "Usuarios", description = "CRUD de usuarios del sistema")
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
-    private final PoliticaService politicaService;
+    private final JwtService jwtService;
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -63,38 +62,30 @@ public class UsuarioController {
     @Operation(summary = "Actualizar usuario")
     public ResponseEntity<ApiResponseDto<UsuarioResponseDto>> actualizar(
             @PathVariable UUID id,
-            @Valid @RequestBody UsuarioRequestDto request) {
-        UsuarioResponseDto usuario = usuarioService.actualizar(id, request);
+            @Valid @RequestBody UsuarioRequestDto request,
+            HttpServletRequest httpRequest) {
+        UUID idUsuarioAutenticado = extraerIdUsuarioDelToken(httpRequest);
+        UsuarioResponseDto usuario = usuarioService.actualizar(id, request, idUsuarioAutenticado);
         return ResponseEntity.ok(ApiResponseDto.success(usuario, "Usuario actualizado correctamente"));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Eliminar usuario (soft delete)")
-    public ResponseEntity<ApiResponseDto<Void>> eliminar(@PathVariable UUID id) {
-        usuarioService.eliminar(id);
+    public ResponseEntity<ApiResponseDto<Void>> eliminar(
+            @PathVariable UUID id,
+            HttpServletRequest httpRequest) {
+        UUID idUsuarioAutenticado = extraerIdUsuarioDelToken(httpRequest);
+        usuarioService.eliminar(id, idUsuarioAutenticado);
         return ResponseEntity.ok(ApiResponseDto.success(null, "Usuario eliminado correctamente"));
     }
 
     /**
-     * Asigna políticas al ROL del usuario especificado.
-     * Endpoint: POST /api/usuarios/{usuarioId}/politicas
-     *
-     * Requiere: ROLE_ADMIN + POLITICA_ASIGNAR
-     *
-     * Las políticas se asignan al ROL del usuario, no directamente al usuario.
-     * Se evitan duplicados automáticamente.
+     * Extrae el UUID del usuario autenticado desde el token JWT en el header Authorization.
      */
-    @PostMapping("/{usuarioId}/politicas")
-    @PreAuthorize("hasRole('ADMIN') and hasAuthority('POLITICA_ASIGNAR')")
-    @Operation(summary = "Asignar políticas a usuario",
-            description = "Asigna políticas al ROL del usuario. Requiere ROLE_ADMIN y permiso POLITICA_ASIGNAR")
-    public ResponseEntity<ApiResponseDto<AsignarPoliticasResponseDto>> asignarPoliticas(
-            @PathVariable UUID usuarioId,
-            @Valid @RequestBody AsignarPoliticasRequestDto request) {
-        log.info("Request: POST /api/usuarios/{}/politicas | Políticas: {}", usuarioId, request.getPoliticasIds().size());
-        AsignarPoliticasResponseDto response = politicaService.asignarPoliticas(usuarioId, request);
-        return ResponseEntity.ok(
-                ApiResponseDto.success(response, "Políticas asignadas correctamente"));
+    private UUID extraerIdUsuarioDelToken(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        String token = authHeader.substring(7); // "Bearer " = 7 chars
+        return jwtService.extraerIdUsuario(token);
     }
 }

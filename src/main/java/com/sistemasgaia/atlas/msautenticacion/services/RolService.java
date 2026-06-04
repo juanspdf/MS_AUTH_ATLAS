@@ -32,6 +32,7 @@ public class RolService {
                         .id(rol.getId())
                         .tipoRol(rol.getTipoRol().name())
                         .descripcionRol(rol.getDescripcionRol())
+                        .activo(rol.getActivo())
                         .build())
                 .toList();
     }

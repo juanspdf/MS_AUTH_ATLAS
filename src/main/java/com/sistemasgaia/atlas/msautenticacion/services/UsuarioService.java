@@ -2,7 +2,9 @@ package com.sistemasgaia.atlas.msautenticacion.services;
 
 import com.sistemasgaia.atlas.msautenticacion.dto.usuario.UsuarioRequestDto;
 import com.sistemasgaia.atlas.msautenticacion.dto.usuario.UsuarioResponseDto;
+import com.sistemasgaia.atlas.msautenticacion.enums.TipoRol;
 import com.sistemasgaia.atlas.msautenticacion.exceptions.BusinessException;
+import com.sistemasgaia.atlas.msautenticacion.exceptions.ForbiddenOperationException;
 import com.sistemasgaia.atlas.msautenticacion.exceptions.ResourceNotFoundException;
 import com.sistemasgaia.atlas.msautenticacion.models.Rol;
 import com.sistemasgaia.atlas.msautenticacion.models.Usuario;
@@ -54,6 +56,11 @@ public class UsuarioService {
         Rol rol = rolRepository.findById(request.getRolId())
                 .orElseThrow(() -> new ResourceNotFoundException("Rol", "id", request.getRolId()));
 
+        // Regla de negocio: no permitir crear usuarios con rol ADMIN
+        if (rol.getTipoRol() == TipoRol.ADMIN) {
+            throw new ForbiddenOperationException("No se permite crear usuarios con rol ADMIN");
+        }
+
         Usuario usuario = Usuario.builder()
                 .nombreUsuario(request.getNombreUsuario())
                 .contrasenia(passwordEncoder.encode(request.getContrasenia()))
@@ -69,10 +76,23 @@ public class UsuarioService {
         return toResponseDto(usuario);
     }
 
+    /**
+     * Actualiza un usuario existente.
+     *
+     * @param id                     UUID del usuario a actualizar
+     * @param request                datos nuevos del usuario
+     * @param idUsuarioAutenticado   UUID del usuario que está haciendo la operación (extraído del JWT)
+     */
     @Transactional
-    public UsuarioResponseDto actualizar(UUID id, UsuarioRequestDto request) {
+    public UsuarioResponseDto actualizar(UUID id, UsuarioRequestDto request, UUID idUsuarioAutenticado) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario", "id", id));
+
+        // Regla de negocio: un ADMIN no puede editarse a sí mismo
+        if (id.equals(idUsuarioAutenticado) && usuario.getRol() != null
+                && usuario.getRol().getTipoRol() == TipoRol.ADMIN) {
+            throw new ForbiddenOperationException("Un administrador no puede editarse a sí mismo");
+        }
 
         if (!usuario.getNombreUsuario().equals(request.getNombreUsuario())
                 && usuarioRepository.existsByNombreUsuario(request.getNombreUsuario())) {
@@ -86,6 +106,11 @@ public class UsuarioService {
 
         Rol rol = rolRepository.findById(request.getRolId())
                 .orElseThrow(() -> new ResourceNotFoundException("Rol", "id", request.getRolId()));
+
+        // Regla de negocio: no permitir asignar rol ADMIN
+        if (rol.getTipoRol() == TipoRol.ADMIN) {
+            throw new ForbiddenOperationException("No se permite asignar el rol ADMIN");
+        }
 
         usuario.setNombreUsuario(request.getNombreUsuario());
         if (request.getContrasenia() != null && !request.getContrasenia().isBlank()) {
@@ -103,10 +128,22 @@ public class UsuarioService {
         return toResponseDto(usuario);
     }
 
+    /**
+     * Elimina (soft delete) un usuario.
+     *
+     * @param id                     UUID del usuario a eliminar
+     * @param idUsuarioAutenticado   UUID del usuario que está haciendo la operación (extraído del JWT)
+     */
     @Transactional
-    public void eliminar(UUID id) {
+    public void eliminar(UUID id, UUID idUsuarioAutenticado) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario", "id", id));
+
+        // Regla de negocio: un ADMIN no puede eliminarse a sí mismo
+        if (id.equals(idUsuarioAutenticado)) {
+            throw new ForbiddenOperationException("Un administrador no puede eliminarse a sí mismo");
+        }
+
         usuario.setActivo(false);
         usuario.setUltimaModificacion(LocalDateTime.now());
         usuarioRepository.save(usuario);

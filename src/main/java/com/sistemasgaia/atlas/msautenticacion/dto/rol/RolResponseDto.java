@@ -15,4 +15,5 @@ public class RolResponseDto {
     private Integer id;
     private String tipoRol;
     private String descripcionRol;
+    private Boolean activo;
 }

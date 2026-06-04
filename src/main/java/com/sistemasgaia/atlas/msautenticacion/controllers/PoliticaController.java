@@ -1,9 +1,7 @@
 package com.sistemasgaia.atlas.msautenticacion.controllers;
 
 import com.sistemasgaia.atlas.msautenticacion.dto.ApiResponseDto;
-import com.sistemasgaia.atlas.msautenticacion.dto.politica.AsignarPoliticasRequestDto;
-import com.sistemasgaia.atlas.msautenticacion.dto.politica.AsignarPoliticasResponseDto;
-import com.sistemasgaia.atlas.msautenticacion.dto.politica.PoliticaRequestDto;
+import com.sistemasgaia.atlas.msautenticacion.dto.politica.AsignarPoliticaRequestDto;
 import com.sistemasgaia.atlas.msautenticacion.dto.politica.PoliticaResponseDto;
 import com.sistemasgaia.atlas.msautenticacion.services.PoliticaService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,33 +19,35 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Controlador REST para la gestión de Políticas (permisos RBAC).
+ * Controlador REST para gestión de Políticas (permisos RBAC).
  *
- * Todos los endpoints requieren:
- * - Token JWT válido
- * - ROLE_ADMIN
- * - Política específica según la operación
+ * Las políticas NO tienen CRUD desde API — solo se listan, asignan y desasignan.
+ * La asignación/desasignación es por ROL (no por usuario).
  *
- * Seguridad implementada con @PreAuthorize (hasRole + hasAuthority).
+ * Endpoints:
+ * - GET  /api/politicas                                → Listar todas las políticas activas
+ * - GET  /api/politicas/rol/{rolId}                    → Listar políticas asignadas a un rol
+ * - POST /api/politicas/rol/{rolId}/asignar            → Asignar política a un rol
+ * - DELETE /api/politicas/rol/{rolId}/desasignar/{politicaId} → Desasignar política de un rol
  */
 @Slf4j
 @RestController
 @RequestMapping("/api/politicas")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
-@Tag(name = "Políticas", description = "CRUD de políticas y gestión de permisos RBAC")
+@Tag(name = "Políticas", description = "Listado y gestión de asignación de permisos RBAC por rol")
 public class PoliticaController {
 
     private final PoliticaService politicaService;
 
     /**
-     * Lista todas las políticas del sistema.
-     * Requiere: ROLE_ADMIN + POLITICA_VER
+     * Lista todas las políticas activas del sistema.
+     * Requiere: autenticación (cualquier usuario autenticado).
      */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Listar políticas",
-            description = "Obtiene todas las políticas registradas. Requiere ROLE_ADMIN")
+            description = "Obtiene todas las políticas activas del sistema. Requiere ROLE_ADMIN")
     public ResponseEntity<ApiResponseDto<List<PoliticaResponseDto>>> listarTodas() {
         log.info("Request: GET /api/politicas");
         List<PoliticaResponseDto> politicas = politicaService.listarTodas();
@@ -56,85 +56,52 @@ public class PoliticaController {
     }
 
     /**
-     * Busca una política por su ID.
-     * Requiere: ROLE_ADMIN + POLITICA_VER
+     * Lista las políticas asignadas a un rol específico.
+     * Requiere: ROLE_ADMIN.
      */
-    @GetMapping("/{id}")
+    @GetMapping("/rol/{rolId}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Buscar política por ID",
-            description = "Obtiene una política específica. Requiere ROLE_ADMIN")
-    public ResponseEntity<ApiResponseDto<PoliticaResponseDto>> buscarPorId(@PathVariable UUID id) {
-        log.info("Request: GET /api/politicas/{}", id);
-        PoliticaResponseDto politica = politicaService.buscarPorId(id);
+    @Operation(summary = "Listar políticas por rol",
+            description = "Obtiene las políticas asignadas a un rol específico. Requiere ROLE_ADMIN")
+    public ResponseEntity<ApiResponseDto<List<PoliticaResponseDto>>> listarPorRol(
+            @PathVariable Integer rolId) {
+        log.info("Request: GET /api/politicas/rol/{}", rolId);
+        List<PoliticaResponseDto> politicas = politicaService.listarPorRol(rolId);
         return ResponseEntity.ok(
-                ApiResponseDto.success(politica, "Política encontrada"));
+                ApiResponseDto.success(politicas, "Políticas del rol obtenidas correctamente"));
     }
 
     /**
-     * Crea una nueva política.
-     * Requiere: ROLE_ADMIN + POLITICA_CREAR
+     * Asigna una política a un rol.
+     * Requiere: ROLE_ADMIN.
      */
-    @PostMapping
+    @PostMapping("/rol/{rolId}/asignar")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Crear política",
-            description = "Crea una nueva política/permiso. Requiere ROLE_ADMIN")
-    public ResponseEntity<ApiResponseDto<PoliticaResponseDto>> crear(
-            @Valid @RequestBody PoliticaRequestDto request) {
-        log.info("Request: POST /api/politicas | Nombre: {}", request.getNombrePolitica());
-        PoliticaResponseDto politica = politicaService.crear(request);
+    @Operation(summary = "Asignar política a rol",
+            description = "Asigna una política específica a un rol. Requiere ROLE_ADMIN")
+    public ResponseEntity<ApiResponseDto<Void>> asignarPoliticaARol(
+            @PathVariable Integer rolId,
+            @Valid @RequestBody AsignarPoliticaRequestDto request) {
+        log.info("Request: POST /api/politicas/rol/{}/asignar | Política: {}", rolId, request.getPoliticaId());
+        politicaService.asignarPoliticaARol(rolId, request.getPoliticaId());
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponseDto.created(politica, "Política creada correctamente"));
+                .body(ApiResponseDto.created(null, "Política asignada correctamente al rol"));
     }
 
     /**
-     * Actualiza una política existente.
-     * Requiere: ROLE_ADMIN + POLITICA_EDITAR
+     * Desasigna una política de un rol.
+     * Requiere: ROLE_ADMIN.
      */
-    @PutMapping("/{id}")
+    @DeleteMapping("/rol/{rolId}/desasignar/{politicaId}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Actualizar política",
-            description = "Modifica una política existente. Requiere ROLE_ADMIN")
-    public ResponseEntity<ApiResponseDto<PoliticaResponseDto>> actualizar(
-            @PathVariable UUID id,
-            @Valid @RequestBody PoliticaRequestDto request) {
-        log.info("Request: PUT /api/politicas/{} | Nombre: {}", id, request.getNombrePolitica());
-        PoliticaResponseDto politica = politicaService.actualizar(id, request);
+    @Operation(summary = "Desasignar política de rol",
+            description = "Desasigna una política específica de un rol. Requiere ROLE_ADMIN")
+    public ResponseEntity<ApiResponseDto<Void>> desasignarPoliticaDeRol(
+            @PathVariable Integer rolId,
+            @PathVariable UUID politicaId) {
+        log.info("Request: DELETE /api/politicas/rol/{}/desasignar/{}", rolId, politicaId);
+        politicaService.desasignarPoliticaDeRol(rolId, politicaId);
         return ResponseEntity.ok(
-                ApiResponseDto.success(politica, "Política actualizada correctamente"));
-    }
-
-    /**
-     * Elimina (soft delete) una política.
-     * Requiere: ROLE_ADMIN + POLITICA_ELIMINAR
-     */
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Eliminar política",
-            description = "Desactiva una política (soft delete). Requiere ROLE_ADMIN")
-    public ResponseEntity<ApiResponseDto<Void>> eliminar(@PathVariable UUID id) {
-        log.info("Request: DELETE /api/politicas/{}", id);
-        politicaService.eliminar(id);
-        return ResponseEntity.ok(
-                ApiResponseDto.success(null, "Política eliminada correctamente"));
-    }
-
-    /**
-     * Asigna políticas al ROL del usuario especificado.
-     * Requiere: ROLE_ADMIN + POLITICA_ASIGNAR
-     *
-     * Las políticas se asignan al ROL, no directamente al usuario.
-     * Se evitan duplicados automáticamente.
-     */
-    @PostMapping("/usuarios/{usuarioId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Asignar políticas a usuario",
-            description = "Asigna políticas al ROL del usuario. Requiere ROLE_ADMIN")
-    public ResponseEntity<ApiResponseDto<AsignarPoliticasResponseDto>> asignarPoliticas(
-            @PathVariable UUID usuarioId,
-            @Valid @RequestBody AsignarPoliticasRequestDto request) {
-        log.info("Request: POST /api/politicas/usuarios/{} | Políticas: {}", usuarioId, request.getPoliticasIds().size());
-        AsignarPoliticasResponseDto response = politicaService.asignarPoliticas(usuarioId, request);
-        return ResponseEntity.ok(
-                ApiResponseDto.success(response, "Políticas asignadas correctamente"));
+                ApiResponseDto.success(null, "Política desasignada correctamente del rol"));
     }
 }

@@ -4,6 +4,7 @@ import com.sistemasgaia.atlas.msautenticacion.dto.auth.*;
 import com.sistemasgaia.atlas.msautenticacion.enums.TipoRol;
 import com.sistemasgaia.atlas.msautenticacion.enums.TipoToken;
 import com.sistemasgaia.atlas.msautenticacion.exceptions.BusinessException;
+import com.sistemasgaia.atlas.msautenticacion.exceptions.ForbiddenOperationException;
 import com.sistemasgaia.atlas.msautenticacion.exceptions.ResourceNotFoundException;
 import com.sistemasgaia.atlas.msautenticacion.models.Rol;
 import com.sistemasgaia.atlas.msautenticacion.models.TokenActivacion;
@@ -74,6 +75,11 @@ public class RegistroService {
             rol = rolRepository.findByTipoRol(TipoRol.CONSULTOR)
                     .orElseThrow(() -> new ResourceNotFoundException("Rol", "tipo", "CONSULTOR"));
         }
+        // Regla de negocio: no permitir registro con rol ADMIN
+        if (rol.getTipoRol() == TipoRol.ADMIN) {
+            throw new ForbiddenOperationException("No se permite registrar usuarios con rol ADMIN");
+        }
+
         final Integer rolId = rol.getId();
 
         // 4. Crear usuario inactivo con contraseña temporal no usable

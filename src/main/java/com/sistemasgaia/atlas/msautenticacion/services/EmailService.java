@@ -1,14 +1,13 @@
 package com.sistemasgaia.atlas.msautenticacion.services;
 
+import com.sistemasgaia.atlas.msautenticacion.exceptions.EmailSendException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
 @Slf4j
@@ -27,7 +26,13 @@ public class EmailService {
     @Value("${atlas.frontend.base-url:http://localhost:4200}")
     private String frontendBaseUrl;
 
-    @Async
+    /**
+     * Envía correo de activación de cuenta.
+     * Lanza EmailSendException si el envío falla después de reintentos.
+     *
+     * NOTA: Este método es SÍNCRONO para que el llamador pueda capturar la excepción
+     * y propagar el error HTTP correcto al frontend.
+     */
     public void enviarCorreoActivacion(String destinatario, String nombreCompleto, String token) {
         String enlace = frontendBaseUrl + "/activar-cuenta?token=" + token;
         String asunto = "ATLAS - Activa tu cuenta";
@@ -36,7 +41,13 @@ public class EmailService {
         log.info("Correo de activacion enviado a: {}", destinatario);
     }
 
-    @Async
+    /**
+     * Envía correo de recuperación de contraseña.
+     * Lanza EmailSendException si el envío falla después de reintentos.
+     *
+     * NOTA: Este método es SÍNCRONO para que el llamador pueda capturar la excepción
+     * y propagar el error HTTP correcto al frontend.
+     */
     public void enviarCorreoRecuperacion(String destinatario, String nombreCompleto, String token) {
         String enlace = frontendBaseUrl + "/restablecer-contrasenia?token=" + token;
         String asunto = "ATLAS - Restablece tu contrasenia";
@@ -45,9 +56,15 @@ public class EmailService {
         log.info("Correo de recuperacion enviado a: {}", destinatario);
     }
 
+    /**
+     * Envía un correo HTML con reintentos.
+     * Si falla después de 3 intentos, lanza EmailSendException (capturada por GlobalExceptionHandler → 502).
+     */
     private void enviarCorreoHtml(String destinatario, String asunto, String contenidoHtml) {
         int maxIntentos = 3;
         int intento = 0;
+        Exception ultimaExcepcion = null;
+
         while (intento < maxIntentos) {
             try {
                 MimeMessage mensaje = mailSender.createMimeMessage();
@@ -57,23 +74,28 @@ public class EmailService {
                 helper.setSubject(asunto);
                 helper.setText(contenidoHtml, true);
                 mailSender.send(mensaje);
-                return;
+                return; // Envío exitoso
             } catch (Exception e) {
                 intento++;
+                ultimaExcepcion = e;
                 log.error("Error enviando correo a {} (intento {}/{}): {}", destinatario, intento, maxIntentos, e.getMessage());
-                if (intento >= maxIntentos) {
-                    log.error("Fallo definitivo al enviar correo a {} después de {} intentos", destinatario, maxIntentos);
-                    throw new RuntimeException("Error al enviar correo. Por favor, intenta nuevamente más tarde.");
-                } else {
+                if (intento < maxIntentos) {
                     try {
                         Thread.sleep(1000L * intento);
                     } catch (InterruptedException ie) {
                         Thread.currentThread().interrupt();
-                        throw new RuntimeException("Interrupción en reintento de envío de correo", ie);
+                        throw new EmailSendException(
+                                "Error al enviar correo: operación interrumpida", ie);
                     }
                 }
             }
         }
+
+        // Todos los intentos fallaron → lanzar excepción controlada
+        log.error("Fallo definitivo al enviar correo a {} después de {} intentos", destinatario, maxIntentos);
+        throw new EmailSendException(
+                "No se pudo enviar el correo a " + destinatario + ". Por favor, intenta nuevamente más tarde.",
+                ultimaExcepcion);
     }
 
     private String buildActivacionHtml(String nombre, String enlace) {

@@ -16,6 +16,7 @@ import java.util.List;
 /**
  * Manejador global de excepciones.
  * Centraliza el manejo de errores y retorna respuestas consistentes.
+ * Nunca expone stack traces al frontend.
  */
 @Slf4j
 @RestControllerAdvice
@@ -47,6 +48,20 @@ public class GlobalExceptionHandler {
         log.warn("Error de negocio: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(ApiResponseDto.error(409, ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(ForbiddenOperationException.class)
+    public ResponseEntity<ApiResponseDto<Void>> handleForbiddenOperation(ForbiddenOperationException ex) {
+        log.warn("Operación prohibida: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponseDto.error(403, ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(EmailSendException.class)
+    public ResponseEntity<ApiResponseDto<Void>> handleEmailSendException(EmailSendException ex) {
+        log.error("Error al enviar correo: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                .body(ApiResponseDto.error(502, ex.getMessage(), null));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
